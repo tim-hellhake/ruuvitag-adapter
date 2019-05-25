@@ -44,7 +44,7 @@ class RuuviTag extends Device {
     const binary = manufacturerData.readUInt8(4);
     const value = binary & 0x7f;
     const sign = binary & 0x80 ? -1 : 1;
-    const temperature = sign * value + digits;
+    const temperature = sign * (value + digits);
 
     const property = this.properties.get('temperature');
     property.setCachedValue(temperature);
