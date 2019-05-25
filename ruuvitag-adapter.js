@@ -27,6 +27,7 @@ class RuuviTag extends Device {
       '@type': 'TemperatureProperty',
       minimum: -127.99,
       maximum: 127.99,
+      multipleOf: 0.01,
       unit: 'degree celsius',
       title: 'temperature',
       description: 'The ambient temperature',
