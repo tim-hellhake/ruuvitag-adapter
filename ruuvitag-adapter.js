@@ -48,9 +48,9 @@ class RuuviTag extends Device {
 
     this.addProperty({
       type: 'number',
-      minimum: 50000,
-      maximum: 115536,
-      multipleOf: 1,
+      minimum: 500,
+      maximum: 1156,
+      multipleOf: 0.01,
       unit: 'hPa',
       title: 'pressure',
       description: 'The atmospheric pressure',
@@ -86,7 +86,7 @@ class RuuviTag extends Device {
     this.notifyPropertyChanged(humiProperty);
 
     const pressureProperty = this.properties.get('pressure');
-    pressureProperty.setCachedValue(parsedData.pressure);
+    pressureProperty.setCachedValue((parsedData.pressure/100).toFixed(2);
     this.notifyPropertyChanged(pressureProperty);
 
     const batteryProperty = this.properties.get('battery');
