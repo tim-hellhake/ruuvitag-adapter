@@ -7,6 +7,7 @@
 'use strict';
 
 const noble = require('@abandonware/noble');
+const parser = require('./parse')
 
 const {
   Adapter,
@@ -33,6 +34,39 @@ class RuuviTag extends Device {
       description: 'The ambient temperature',
       readOnly: true
     });
+
+    this.addProperty({
+      type: 'number',
+      minimum: 0,
+      maximum: 100,
+      multipleOf: 0.5,
+      unit: '%',
+      title: 'humidity',
+      description: 'The relative humidity',
+      readOnly: true
+    });
+
+    this.addProperty({
+      type: 'number',
+      minimum: 50000,
+      maximum: 115536,
+      multipleOf: 1,
+      unit: 'hPa',
+      title: 'pressure',
+      description: 'The atmospheric pressure',
+      readOnly: true
+    });
+
+    this.addProperty({
+      type: 'number',
+      minimum: 0,
+      maximum: 4000,
+      multipleOf: 1,
+      unit: 'mV',
+      title: 'battery',
+      description: 'The battery voltage',
+      readOnly: true
+    });
   }
 
   addProperty(description) {
@@ -41,15 +75,23 @@ class RuuviTag extends Device {
   }
 
   setData(manufacturerData) {
-    const digits = manufacturerData.readUInt8(5) / 100;
-    const binary = manufacturerData.readUInt8(4);
-    const value = binary & 0x7f;
-    const sign = binary & 0x80 ? -1 : 1;
-    const temperature = sign * (value + digits);
+    const parsedData = parser.parseManufacturerData(manufacturerData);
 
-    const property = this.properties.get('temperature');
-    property.setCachedValue(temperature);
-    this.notifyPropertyChanged(property);
+    const tempProperty = this.properties.get('temperature');
+    tempProperty.setCachedValue(parsedData.temperature);
+    this.notifyPropertyChanged(tempProperty);
+
+    const humiProperty = this.properties.get('humidity');
+    humiProperty.setCachedValue(parsedData.humidity);
+    this.notifyPropertyChanged(humiProperty);
+
+    const pressureProperty = this.properties.get('pressure');
+    pressureProperty.setCachedValue(parsedData.pressure);
+    this.notifyPropertyChanged(pressureProperty);
+
+    const batteryProperty = this.properties.get('battery');
+    batteryProperty.setCachedValue(parsedData.battery);
+    this.notifyPropertyChanged(batteryProperty);
   }
 }
 
