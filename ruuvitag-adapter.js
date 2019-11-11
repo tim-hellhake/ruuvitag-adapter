@@ -7,7 +7,7 @@
 'use strict';
 
 const noble = require('@abandonware/noble');
-const parser = require('./parse')
+const parser = require('./parse');
 
 const {
   Adapter,
@@ -86,7 +86,7 @@ class RuuviTag extends Device {
     this.notifyPropertyChanged(humiProperty);
 
     const pressureProperty = this.properties.get('pressure');
-    pressureProperty.setCachedValue((parsedData.pressure/100).toFixed(2);
+    pressureProperty.setCachedValue((parsedData.pressure / 100).toFixed(2));
     this.notifyPropertyChanged(pressureProperty);
 
     const batteryProperty = this.properties.get('battery');
