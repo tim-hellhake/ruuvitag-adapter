@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 rm -rf node_modules
 if [ -z "${ADDON_ARCH}" ]; then
@@ -18,6 +18,7 @@ fi
 
 rm -f SHA256SUMS
 sha256sum package.json *.js LICENSE > SHA256SUMS
+rm -rf node_modules/.bin
 find node_modules -type f -exec sha256sum {} \; >> SHA256SUMS
 TARFILE="$(npm pack)"
 tar xzf ${TARFILE}
