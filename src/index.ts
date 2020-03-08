@@ -6,7 +6,6 @@
 
 'use strict';
 
-const RuuviTagAdapter = require('./ruuvitag-adapter');
+import { RuuviTagAdapter } from './ruuvitag-adapter';
 
-module.exports =
-    (addonManager, manifest) => new RuuviTagAdapter(addonManager, manifest);
+export = (addonManager: any, manifest: any) => new RuuviTagAdapter(addonManager, manifest);

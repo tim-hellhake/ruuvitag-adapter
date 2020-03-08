@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+npm ci
+npm run build
 rm -rf node_modules
 
 if [ -z "${ADDON_ARCH}" ]; then
@@ -9,9 +11,9 @@ else
   TARFILE_SUFFIX="-${ADDON_ARCH}-${NODE_VERSION/\.*/}"
 fi
 
-npm install --production
+npm ci --production
 
-shasum --algorithm 256 manifest.json package.json *.js LICENSE README.md > SHA256SUMS
+shasum --algorithm 256 manifest.json package.json lib/*.js LICENSE README.md > SHA256SUMS
 
 find node_modules \( -type f -o -type l \) -exec shasum --algorithm 256 {} \; >> SHA256SUMS
 

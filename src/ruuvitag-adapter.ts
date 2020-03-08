@@ -6,23 +6,21 @@
 
 'use strict';
 
-const noble = require('@abandonware/noble');
+import { Adapter, Device, Property } from 'gateway-addon';
 
-const {
-  Adapter,
-  Device,
-  Property
-} = require('gateway-addon');
+import noble from '@abandonware/noble';
 
-class RuuviTag extends Device {
-  constructor(adapter, manifest, id) {
+export class RuuviTag extends Device {
+  private temperatureProperty: Property;
+
+  constructor(adapter: Adapter, manifest: any, id: string) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor'];
     this.name = manifest.display_name;
     this.description = manifest.description;
 
-    this.addProperty({
+    this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
       '@type': 'TemperatureProperty',
       minimum: -127.99,
@@ -33,30 +31,27 @@ class RuuviTag extends Device {
       description: 'The ambient temperature',
       readOnly: true
     });
+
+    this.properties.set('temperature', this.temperatureProperty);
   }
 
-  addProperty(description) {
-    const property = new Property(this, description.title, description);
-    this.properties.set(description.title, property);
-  }
-
-  setData(manufacturerData) {
+  setData(manufacturerData: Buffer) {
     const digits = manufacturerData.readUInt8(5) / 100;
     const binary = manufacturerData.readUInt8(4);
     const value = binary & 0x7f;
     const sign = binary & 0x80 ? -1 : 1;
     const temperature = sign * (value + digits);
 
-    const property = this.properties.get('temperature');
-    property.setCachedValue(temperature);
-    this.notifyPropertyChanged(property);
+    this.temperatureProperty.setCachedValue(temperature);
+    this.notifyPropertyChanged(this.temperatureProperty);
   }
 }
 
-class RuuviTagAdapter extends Adapter {
-  constructor(addonManager, manifest) {
+export class RuuviTagAdapter extends Adapter {
+  private knownDevices: { [key: string]: RuuviTag } = {};
+
+  constructor(addonManager: any, manifest: any) {
     super(addonManager, RuuviTagAdapter.name, manifest.name);
-    this.pollInterval = manifest.moziot.config.pollInterval;
     this.knownDevices = {};
     addonManager.addAdapter(this);
 
@@ -88,5 +83,3 @@ class RuuviTagAdapter extends Adapter {
     });
   }
 }
-
-module.exports = RuuviTagAdapter;
