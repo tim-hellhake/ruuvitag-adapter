@@ -3,7 +3,7 @@
   "id": "ruuvitag-adapter",
   "name": "RuuviTag",
   "short_name": "RuuviTag",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Connect your RuuviTags (bluetooth environmental sensor)",
   "homepage_url": "https://github.com/tim-hellhake/ruuvitag-adapter#readme",
   "license": "MPL-2.0",
