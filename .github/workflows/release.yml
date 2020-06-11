@@ -19,6 +19,12 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 8.x
+    - name: Run tests
+      run: |
+        npm ci
+        npm test
+      env:
+        CI: true
     - name: Build project
       run: |
         ./package.sh
