@@ -1,7 +1,7 @@
 {
   "name": "ruuvitag-adapter",
   "display_name": "RuuviTag",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Connect your RuuviTags (bluetooth environmental sensor)",
   "main": "lib/index.js",
   "scripts": {
