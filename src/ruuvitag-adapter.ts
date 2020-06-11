@@ -9,6 +9,7 @@
 import { Adapter, Device, Property } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
+import { parse } from './ruuvitag-parser';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
@@ -36,11 +37,9 @@ export class RuuviTag extends Device {
   }
 
   setData(manufacturerData: Buffer) {
-    const digits = manufacturerData.readUInt8(5) / 100;
-    const binary = manufacturerData.readUInt8(4);
-    const value = binary & 0x7f;
-    const sign = binary & 0x80 ? -1 : 1;
-    const temperature = sign * (value + digits);
+    const {
+      temperature
+    } = parse(manufacturerData);
 
     this.temperatureProperty.setCachedValue(temperature);
     this.notifyPropertyChanged(this.temperatureProperty);

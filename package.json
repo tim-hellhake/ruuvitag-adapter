@@ -5,7 +5,7 @@
   "description": "Connect your RuuviTags (bluetooth environmental sensor)",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha -r ts-node/register src/**/*.spec.ts",
     "build": "tsc -p ."
   },
   "repository": {
@@ -37,8 +37,13 @@
     "@abandonware/noble": "1.9.2-9"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
     "@types/noble": "0.0.40",
     "@types/node": "^14.0.13",
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
+    "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
   }
 }
