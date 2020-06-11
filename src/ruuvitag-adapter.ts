@@ -13,11 +13,11 @@ import noble from '@abandonware/noble';
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
 
-  constructor(adapter: Adapter, manifest: any, id: string) {
+  constructor(adapter: Adapter, manifest: any, id: string, address?: string) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor'];
-    this.name = manifest.display_name;
+    this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
 
     this.temperatureProperty = new Property(this, 'temperature', {
@@ -68,12 +68,16 @@ export class RuuviTagAdapter extends Adapter {
       const manufacturerData = peripheral.advertisement.manufacturerData;
 
       if (manufacturerData && manufacturerData.readUInt16LE(0) === 0x0499) {
-        const id = peripheral.id;
+        const {
+          id,
+          address
+        } = peripheral;
+
         let knownDevice = this.knownDevices[id];
 
         if (!knownDevice) {
           console.log(`Detected new RuuviTag with id ${id}`);
-          knownDevice = new RuuviTag(this, manifest, id);
+          knownDevice = new RuuviTag(this, manifest, id, address);
           this.handleDeviceAdded(knownDevice);
           this.knownDevices[id] = knownDevice;
         }
