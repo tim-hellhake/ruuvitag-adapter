@@ -34,11 +34,11 @@
     "exec": "{nodeLoader} {path}"
   },
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-5"
+    "@abandonware/noble": "1.9.2-9"
   },
   "devDependencies": {
-    "@types/noble": "0.0.39",
-    "@types/node": "^13.9.0",
-    "typescript": "^3.8.3"
+    "@types/noble": "0.0.40",
+    "@types/node": "^14.0.13",
+    "typescript": "^3.9.5"
   }
 }
