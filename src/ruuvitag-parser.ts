@@ -6,6 +6,10 @@
 
 'use strict';
 
+export function hPa(pa: number) {
+    return pa / 100;
+}
+
 export function parse(manufacturerData: Buffer) {
     let temperature = null;
     let humidity = null;
@@ -13,7 +17,7 @@ export function parse(manufacturerData: Buffer) {
     let batteryVoltage = null;
     let txPower = null;
 
-    if (manufacturerData[2]!==5) {
+    if (manufacturerData[2] !== 5) {
         const digits = manufacturerData.readUInt8(5) / 100;
         const binary = manufacturerData.readUInt8(4);
         const value = binary & 0x7f;
@@ -21,22 +25,22 @@ export function parse(manufacturerData: Buffer) {
         temperature = sign * (value + digits);
     }
 
-    if (manufacturerData[2]===5) {
-        if (manufacturerData.readInt16BE(3)!==0x8000) {
+    if (manufacturerData[2] === 5) {
+        if (manufacturerData.readInt16BE(3) !== 0x8000) {
             temperature = manufacturerData.readInt16BE(3) / 200;
         }
 
-        if (manufacturerData.readUInt16BE(5)!==65535) {
+        if (manufacturerData.readUInt16BE(5) !== 65535) {
             humidity = manufacturerData.readUInt16BE(5) / 400;
         }
 
-        if (manufacturerData.readUInt16BE(7)!==65535) {
-            pressure = manufacturerData.readUInt16BE(7) / 100 + 500;
+        if (manufacturerData.readUInt16BE(7) !== 65535) {
+            pressure = hPa(manufacturerData.readUInt16BE(7) + 50000);
         }
 
-        if (manufacturerData.readUInt16BE(15)!==65535) {
+        if (manufacturerData.readUInt16BE(15) !== 65535) {
             const powerInfo = manufacturerData.readUInt16BE(15);
-            batteryVoltage = (powerInfo >>> 5) / 1000.0 + 1.6;
+            batteryVoltage = parseFloat((((manufacturerData.readUInt16BE(15) >> 5) / 1000) + 1.6).toFixed(3));
             txPower = (powerInfo & 0b11111) * 2 - 40;
         }
     }
