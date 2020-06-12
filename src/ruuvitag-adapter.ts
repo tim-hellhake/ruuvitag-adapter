@@ -9,7 +9,7 @@
 import { Adapter, Device, Property } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
-import { parse } from './ruuvitag-parser';
+import { parse, DataV3, DataV5 } from './ruuvitag-parser';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
@@ -51,61 +51,85 @@ export class RuuviTag extends Device {
     this.properties.set('humidity', this.humidityProperty);
 
     this.pressureProperty = new Property(this, 'pressure', {
-        type: 'number',
-        minimum: 800,
-        maximum: 1200,
-        unit: 'Pa',
-        multipleOf: 0.01,
-        title: 'pressure',
-        description: 'The atmosperic pressure in pascals',
-        readOnly: true
+      type: 'number',
+      minimum: 800,
+      maximum: 1200,
+      unit: 'Pa',
+      multipleOf: 0.01,
+      title: 'pressure',
+      description: 'The atmosperic pressure in pascals',
+      readOnly: true
     });
     this.properties.set('pressure', this.pressureProperty);
 
     this.batteryProperty = new Property(this, 'battery', {
-        '@type': 'VoltageProperty',
-        type: 'number',
-        unit: 'volt',
-        minimum: 1.5,
-        maximum: 3.7,
-        multipleOf: 0.001,
-        title: 'battery',
-        description: 'The battery voltage',
-        readOnly: true
+      '@type': 'VoltageProperty',
+      type: 'number',
+      unit: 'volt',
+      minimum: 1.5,
+      maximum: 3.7,
+      multipleOf: 0.001,
+      title: 'battery',
+      description: 'The battery voltage',
+      readOnly: true
     });
     this.properties.set('battery', this.batteryProperty);
 
     this.txPowerProperty = new Property(this, 'txPower', {
-        type: 'integer',
-        unit: 'dBm',
-        minimum: -40,
-        maximum: 20,
-        title: 'transmission power',
-        description: 'The transmission power in decibels',
-        readOnly: true
+      type: 'integer',
+      unit: 'dBm',
+      minimum: -40,
+      maximum: 20,
+      title: 'transmission power',
+      description: 'The transmission power in decibels',
+      readOnly: true
     });
     this.properties.set('txPower', this.txPowerProperty);
   }
 
   setData(manufacturerData: Buffer) {
+    const data = parse(manufacturerData);
+
+    switch (data.version) {
+      case 3:
+        this.setDataV3(<DataV3>data);
+        break;
+      case 5:
+        this.setDataV5(<DataV5>data);
+        break;
+    }
+  }
+
+  setDataV3(data: DataV3) {
     const {
-      temperature,
       humidity,
+      temperature,
       pressure,
-      batteryVoltage,
-      txPower,
-    } = parse(manufacturerData);
+      batteryVoltage
+    } = data;
+
+    this.humidityProperty.setCachedValue(humidity);
+    this.notifyPropertyChanged(this.humidityProperty);
 
     this.temperatureProperty.setCachedValue(temperature);
     this.notifyPropertyChanged(this.temperatureProperty);
-    this.humidityProperty.setCachedValue(humidity);
-    this.notifyPropertyChanged(this.humidityProperty);
+
     this.pressureProperty.setCachedValue(pressure);
     this.notifyPropertyChanged(this.pressureProperty);
+
     this.batteryProperty.setCachedValue(batteryVoltage);
     this.notifyPropertyChanged(this.batteryProperty);
+  }
+
+  setDataV5(data: DataV5) {
+    const {
+      txPower
+    } = data;
+
     this.txPowerProperty.setCachedValue(txPower);
     this.notifyPropertyChanged(this.txPowerProperty);
+
+    this.setDataV3(data);
   }
 }
 

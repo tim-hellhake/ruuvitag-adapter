@@ -10,46 +10,73 @@ export function hPa(pa: number) {
     return pa / 100;
 }
 
-export function parse(manufacturerData: Buffer) {
-    let temperature = null;
-    let humidity = null;
-    let pressure = null;
-    let batteryVoltage = null;
-    let txPower = null;
+export interface DataV3 {
+    version: number,
+    humidity: number,
+    temperature: number,
+    pressure: number,
+    batteryVoltage: number
+}
 
-    if (manufacturerData[2] !== 5) {
-        const digits = manufacturerData.readUInt8(5) / 100;
-        const binary = manufacturerData.readUInt8(4);
-        const value = binary & 0x7f;
-        const sign = binary & 0x80 ? -1 : 1;
-        temperature = sign * (value + digits);
+export interface DataV5 {
+    version: number,
+    temperature: number,
+    humidity: number,
+    pressure: number,
+    batteryVoltage: number,
+    txPower: number
+}
+
+export function parse(manufacturerData: Buffer): DataV3 | DataV5 {
+    const payload = manufacturerData.subarray(2);
+    const version = payload.readUInt8(0);
+
+    switch (version) {
+        case 3:
+            return parse3(payload);
+        case 5:
+            return parse5(payload);
     }
 
-    if (manufacturerData[2] === 5) {
-        if (manufacturerData.readInt16BE(3) !== 0x8000) {
-            temperature = manufacturerData.readInt16BE(3) / 200;
-        }
+    throw `Unknown version ${version}`;
+}
 
-        if (manufacturerData.readUInt16BE(5) !== 65535) {
-            humidity = manufacturerData.readUInt16BE(5) / 400;
-        }
+export function parse3(payload: Buffer): DataV3 {
+    const version = payload.readUInt8(0);
+    const humidity = payload.readUInt8(1) * 0.5;
 
-        if (manufacturerData.readUInt16BE(7) !== 65535) {
-            pressure = hPa(manufacturerData.readUInt16BE(7) + 50000);
-        }
+    const binary = payload.readUInt8(2);
+    const digits = payload.readUInt8((3)) / 100;
+    const value = binary & 0x7f;
+    const sign = binary & 0x80 ? -1 : 1;
+    const temperature = sign * (value + digits);
 
-        if (manufacturerData.readUInt16BE(15) !== 65535) {
-            const powerInfo = manufacturerData.readUInt16BE(15);
-            batteryVoltage = parseFloat((((manufacturerData.readUInt16BE(15) >> 5) / 1000) + 1.6).toFixed(3));
-            txPower = (powerInfo & 0b11111) * 2 - 40;
-        }
-    }
+    const pressure = hPa(payload.readUInt16BE(4) + 50000);
+    const batteryVoltage = payload.readUInt16BE(12) / 1000;
 
     return {
+        version,
+        humidity,
+        temperature,
+        pressure,
+        batteryVoltage
+    }
+}
+
+export function parse5(payload: Buffer): DataV5 {
+    const version = payload.readUInt8(0);
+    const temperature = payload.readInt16BE(1) * 0.005;
+    const humidity = payload.readUInt16BE(3) * 0.0025;
+    const pressure = hPa(payload.readUInt16BE(5) + 50000);
+    const batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
+    const txPower = (payload.readUInt16BE(13) & 0b11111) * 2 - 40;
+
+    return {
+        version,
         temperature,
         humidity,
         pressure,
         batteryVoltage,
-        txPower,
+        txPower
     }
 }

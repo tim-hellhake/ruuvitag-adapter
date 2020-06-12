@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { parse, hPa } from './ruuvitag-parser';
+import { parse, hPa, DataV5 } from './ruuvitag-parser';
 import { expect } from 'chai';
 import 'mocha';
 
@@ -19,19 +19,41 @@ describe('Data Format 3 Protocol Specification (RAWv1)', () => {
     const minimum = parse(Buffer.from(manufacturerId + "0300FF6300008001800180010000", "hex"));
     const maximum = parse(Buffer.from(manufacturerId + "03FF7F63FFFF7FFF7FFF7FFFFFFF", "hex"));
 
+    it('version should be parsed correctly', () => {
+        expect(sample.version).to.equal(3);
+    });
+
+    it('humidity should be parsed correctly', () => {
+        expect(sample.humidity).to.equal(20.5);
+        expect(minimum.humidity).to.equal(0);
+        expect(maximum.humidity).to.equal(127.5);
+    });
+
     it('temperature should be parsed correctly', () => {
         expect(sample.temperature).to.equal(26.3);
         expect(minimum.temperature).to.equal(-127.99);
         expect(maximum.temperature).to.equal(127.99);
+    });
+
+    it('pressure should be parsed correctly', () => {
+        expect(sample.pressure).to.equal(hPa(102766));
+        expect(minimum.pressure).to.equal(hPa(50000));
+        expect(maximum.pressure).to.equal(hPa(115535));
+    });
+
+    it('voltage should be parsed correctly', () => {
+        expect(sample.batteryVoltage).to.equal(2.899);
+        expect(minimum.batteryVoltage).to.equal(0);
+        expect(maximum.batteryVoltage).to.equal(65.535);
     });
 });
 
 describe('Data Format 5 Protocol Specification (RAWv2)', () => {
     // https://github.com/ruuvi/ruuvi-sensor-protocols/blob/master/dataformat_05.md
 
-    const sample = parse(Buffer.from(manufacturerId + "0512FC5394C37C0004FFFC040CAC364200CDCBB8334C884F", "hex"));
-    const minimum = parse(Buffer.from(manufacturerId + "058001000000008001800180010000000000CBB8334C884F", "hex"));
-    const maximum = parse(Buffer.from(manufacturerId + "057FFFFFFEFFFE7FFF7FFF7FFFFFDEFEFFFECBB8334C884F", "hex"));
+    const sample = <DataV5>parse(Buffer.from(manufacturerId + "0512FC5394C37C0004FFFC040CAC364200CDCBB8334C884F", "hex"));
+    const minimum = <DataV5>parse(Buffer.from(manufacturerId + "058001000000008001800180010000000000CBB8334C884F", "hex"));
+    const maximum = <DataV5>parse(Buffer.from(manufacturerId + "057FFFFFFEFFFE7FFF7FFF7FFFFFDEFEFFFECBB8334C884F", "hex"));
 
     it('humidity should be parsed correctly', () => {
         expect(sample.temperature).to.equal(24.3);
@@ -49,6 +71,12 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
         expect(sample.pressure).to.equal(hPa(100044));
         expect(minimum.pressure).to.equal(hPa(50000));
         expect(maximum.pressure).to.equal(hPa(115534));
+    });
+
+    it('tx power should be parsed correctly', () => {
+        expect(sample.txPower).to.equal(4);
+        expect(minimum.txPower).to.equal(-40);
+        expect(maximum.txPower).to.equal(20);
     });
 
     it('batteryVoltage should be parsed correctly', () => {
