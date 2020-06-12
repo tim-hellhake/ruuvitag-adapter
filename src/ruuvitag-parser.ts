@@ -22,19 +22,19 @@ export function parse(manufacturerData: Buffer) {
     }
 
     if (manufacturerData[2]===5) {
-        if (manufacturerData.readInt16BE(3)!==32767) {
+        if (manufacturerData.readInt16BE(3)!==0x8000) {
             temperature = manufacturerData.readInt16BE(3) / 200;
         }
 
-        if (manufacturerData.readUInt16BE(5)!==65536) {
+        if (manufacturerData.readUInt16BE(5)!==65535) {
             humidity = manufacturerData.readUInt16BE(5) / 400;
         }
 
-        if (manufacturerData.readUInt16BE(7)!==65536) {
+        if (manufacturerData.readUInt16BE(7)!==65535) {
             pressure = manufacturerData.readUInt16BE(7) / 10 - 4000;
         }
 
-        if (manufacturerData.readUInt16BE(15)!==65536) {
+        if (manufacturerData.readUInt16BE(15)!==65535) {
             const powerInfo = manufacturerData.readUInt16BE(15);
             batteryVoltage = (powerInfo >>> 5) / 1000.0 + 1.6;
             txPower = (powerInfo & 0b11111) * 2 - 40;
