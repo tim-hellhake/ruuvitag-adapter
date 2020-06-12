@@ -16,7 +16,7 @@ export class RuuviTag extends Device {
   private humidityProperty: Property;
   private pressureProperty: Property;
   private batteryProperty: Property;
-  private txPowerProperty: Property;
+  private txPowerProperty?: Property;
 
   constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer) {
     super(adapter, `${RuuviTag.name}-${id}`);
@@ -84,19 +84,21 @@ export class RuuviTag extends Device {
 
     this.properties.set('battery', this.batteryProperty);
 
-    this.txPowerProperty = new Property(this, 'txPower', {
-      type: 'integer',
-      '@type': 'LevelProperty',
-      minimum: metadata.txPower?.min,
-      maximum: metadata.txPower?.max,
-      multipleOf: metadata.txPower?.step,
-      unit: 'dBm',
-      title: 'transmission power',
-      description: 'The transmission power in decibels',
-      readOnly: true
-    });
+    if (data.version == 5) {
+      this.txPowerProperty = new Property(this, 'txPower', {
+        type: 'integer',
+        '@type': 'LevelProperty',
+        minimum: metadata.txPower?.min,
+        maximum: metadata.txPower?.max,
+        multipleOf: metadata.txPower?.step,
+        unit: 'dBm',
+        title: 'transmission power',
+        description: 'The transmission power in decibels',
+        readOnly: true
+      });
 
-    this.properties.set('txPower', this.txPowerProperty);
+      this.properties.set('txPower', this.txPowerProperty);
+    }
   }
 
   setData(manufacturerData: Buffer) {
@@ -138,8 +140,10 @@ export class RuuviTag extends Device {
       txPower
     } = data;
 
-    this.txPowerProperty.setCachedValue(txPower);
-    this.notifyPropertyChanged(this.txPowerProperty);
+    if (this.txPowerProperty) {
+      this.txPowerProperty.setCachedValue(txPower);
+      this.notifyPropertyChanged(this.txPowerProperty);
+    }
 
     this.setDataV3(data);
   }
