@@ -13,6 +13,10 @@ import { parse } from './ruuvitag-parser';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
+  private humidityProperty: Property;
+  private pressureProperty: Property;
+  private batteryProperty: Property;
+  private txPowerProperty: Property;
 
   constructor(adapter: Adapter, manifest: any, id: string, address?: string) {
     super(adapter, `${RuuviTag.name}-${id}`);
@@ -32,17 +36,76 @@ export class RuuviTag extends Device {
       description: 'The ambient temperature',
       readOnly: true
     });
-
     this.properties.set('temperature', this.temperatureProperty);
+
+    this.humidityProperty = new Property(this, 'humidity', {
+      type: 'number',
+      unit: 'percent',
+      minimum: -1,
+      maximum: 101,
+      multipleOf: 0.01,
+      title: 'humidity',
+      description: 'The relative humidity',
+      readOnly: true
+    });
+    this.properties.set('humidity', this.humidityProperty);
+
+    this.pressureProperty = new Property(this, 'pressure', {
+        type: 'number',
+        minimum: 800,
+        maximum: 1200,
+        unit: 'Pa',
+        multipleOf: 0.01,
+        title: 'pressure',
+        description: 'The atmosperic pressure in pascals',
+        readOnly: true
+    });
+    this.properties.set('pressure', this.pressureProperty);
+
+    this.batteryProperty = new Property(this, 'battery', {
+        '@type': 'VoltageProperty',
+        type: 'number',
+        unit: 'volt',
+        minimum: 1.5,
+        maximum: 3.7,
+        multipleOf: 0.001,
+        title: 'battery',
+        description: 'The battery voltage',
+        readOnly: true
+    });
+    this.properties.set('battery', this.batteryProperty);
+
+    this.txPowerProperty = new Property(this, 'txPower', {
+        type: 'integer',
+        unit: 'dBm',
+        minimum: -40,
+        maximum: 20,
+        title: 'transmission power',
+        description: 'The transmission power in decibels',
+        readOnly: true
+    });
+    this.properties.set('txPower', this.txPowerProperty);
   }
 
   setData(manufacturerData: Buffer) {
     const {
-      temperature
+      temperature,
+      humidity,
+      pressure,
+      batteryVoltage,
+      txPower,
     } = parse(manufacturerData);
 
     this.temperatureProperty.setCachedValue(temperature);
     this.notifyPropertyChanged(this.temperatureProperty);
+    this.humidityProperty.setCachedValue(humidity);
+    this.notifyPropertyChanged(this.humidityProperty);
+    this.pressureProperty.setCachedValue(pressure);
+    this.notifyPropertyChanged(this.pressureProperty);
+    this.batteryProperty.setCachedValue(batteryVoltage);
+    this.notifyPropertyChanged(this.batteryProperty);
+    this.txPowerProperty.setCachedValue(txPower);
+    this.notifyPropertyChanged(this.txPowerProperty);
   }
 }
 
