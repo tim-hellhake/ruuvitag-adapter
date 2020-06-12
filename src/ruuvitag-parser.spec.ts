@@ -55,6 +55,10 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
     const minimum = <DataV5>parse(Buffer.from(manufacturerId + "058001000000008001800180010000000000CBB8334C884F", "hex"));
     const maximum = <DataV5>parse(Buffer.from(manufacturerId + "057FFFFFFEFFFE7FFF7FFF7FFFFFDEFEFFFECBB8334C884F", "hex"));
 
+    it('version should be parsed correctly', () => {
+        expect(sample.version).to.equal(5);
+    });
+
     it('humidity should be parsed correctly', () => {
         expect(sample.temperature).to.equal(24.3);
         expect(minimum.temperature).to.equal(-163.835);

@@ -9,7 +9,7 @@
 import { Adapter, Device, Property } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
-import { parse, DataV3, DataV5 } from './ruuvitag-parser';
+import { parse, DataV3, DataV5, getMetadata } from './ruuvitag-parser';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
@@ -18,72 +18,84 @@ export class RuuviTag extends Device {
   private batteryProperty: Property;
   private txPowerProperty: Property;
 
-  constructor(adapter: Adapter, manifest: any, id: string, address?: string) {
+  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor'];
     this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
 
+    const data = parse(manufacturerData);
+    const metadata = getMetadata(data.version);
+
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
       '@type': 'TemperatureProperty',
-      minimum: -127.99,
-      maximum: 127.99,
-      multipleOf: 0.01,
+      minimum: metadata.temperature.min,
+      maximum: metadata.temperature.max,
+      multipleOf: metadata.temperature.step,
       unit: 'degree celsius',
       title: 'temperature',
       description: 'The ambient temperature',
       readOnly: true
     });
+
     this.properties.set('temperature', this.temperatureProperty);
 
     this.humidityProperty = new Property(this, 'humidity', {
       type: 'number',
-      unit: 'percent',
-      minimum: -1,
-      maximum: 101,
-      multipleOf: 0.01,
+      '@type': 'LevelProperty',
+      minimum: metadata.humidity.min,
+      maximum: metadata.humidity.max,
+      multipleOf: metadata.humidity.step,
+      unit: '%',
       title: 'humidity',
       description: 'The relative humidity',
       readOnly: true
     });
+
     this.properties.set('humidity', this.humidityProperty);
 
     this.pressureProperty = new Property(this, 'pressure', {
       type: 'number',
-      minimum: 800,
-      maximum: 1200,
-      unit: 'Pa',
-      multipleOf: 0.01,
-      title: 'pressure',
-      description: 'The atmosperic pressure in pascals',
+      '@type': 'LevelProperty',
+      minimum: metadata.pressure.min,
+      maximum: metadata.pressure.max,
+      multipleOf: metadata.pressure.step,
+      unit: 'hPa',
+      title: 'Atmospheric pressure',
+      description: 'The atmospheric pressure',
       readOnly: true
     });
+
     this.properties.set('pressure', this.pressureProperty);
 
     this.batteryProperty = new Property(this, 'battery', {
-      '@type': 'VoltageProperty',
       type: 'number',
+      '@type': 'LevelProperty',
+      minimum: metadata.batteryVoltage.min,
+      maximum: metadata.batteryVoltage.max,
+      multipleOf: metadata.batteryVoltage.step,
       unit: 'volt',
-      minimum: 1.5,
-      maximum: 3.7,
-      multipleOf: 0.001,
-      title: 'battery',
+      title: 'Battery',
       description: 'The battery voltage',
       readOnly: true
     });
+
     this.properties.set('battery', this.batteryProperty);
 
     this.txPowerProperty = new Property(this, 'txPower', {
       type: 'integer',
+      '@type': 'LevelProperty',
+      minimum: metadata.txPower?.min,
+      maximum: metadata.txPower?.max,
+      multipleOf: metadata.txPower?.step,
       unit: 'dBm',
-      minimum: -40,
-      maximum: 20,
       title: 'transmission power',
       description: 'The transmission power in decibels',
       readOnly: true
     });
+
     this.properties.set('txPower', this.txPowerProperty);
   }
 
@@ -163,7 +175,7 @@ export class RuuviTagAdapter extends Adapter {
 
         if (!knownDevice) {
           console.log(`Detected new RuuviTag with id ${id}`);
-          knownDevice = new RuuviTag(this, manifest, id, address);
+          knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData);
           this.handleDeviceAdded(knownDevice);
           this.knownDevices[id] = knownDevice;
         }

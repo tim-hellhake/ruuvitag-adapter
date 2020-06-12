@@ -68,15 +68,73 @@ export function parse5(payload: Buffer): DataV5 {
     const temperature = payload.readInt16BE(1) * 0.005;
     const humidity = payload.readUInt16BE(3) * 0.0025;
     const pressure = hPa(payload.readUInt16BE(5) + 50000);
-    const batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
     const txPower = (payload.readUInt16BE(13) & 0b11111) * 2 - 40;
+    const batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
 
     return {
         version,
         temperature,
         humidity,
         pressure,
+        txPower,
         batteryVoltage,
-        txPower
     }
+}
+
+export function getMetadata(version: number) {
+    switch (version) {
+        case 3:
+            return {
+                humidity: {
+                    min: 0,
+                    max: 100,
+                    step: 0.5
+                },
+                temperature: {
+                    min: -127.99,
+                    max: 127.99,
+                    step: 0.01
+                },
+                pressure: {
+                    min: hPa(50000),
+                    max: hPa(101325),
+                    step: hPa(1)
+                },
+                batteryVoltage: {
+                    min: 1.6,
+                    max: 3.647,
+                    step: 0.001
+                }
+            };
+        case 5:
+            return {
+                temperature: {
+                    min: -163.835,
+                    max: 163.835,
+                    step: 0.005
+                },
+                humidity: {
+                    min: 0,
+                    max: 100,
+                    step: 0.0025
+                },
+                pressure: {
+                    min: hPa(50000),
+                    max: hPa(101325),
+                    step: hPa(1)
+                },
+                txPower: {
+                    min: -40,
+                    max: 20,
+                    step: 2
+                },
+                batteryVoltage: {
+                    min: 1.6,
+                    max: 3.647,
+                    step: 0.001
+                }
+            };
+    }
+
+    throw `Unknown version ${version}`;
 }
