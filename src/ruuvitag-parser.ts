@@ -31,7 +31,7 @@ export function parse(manufacturerData: Buffer) {
         }
 
         if (manufacturerData.readUInt16BE(7)!==65535) {
-            pressure = manufacturerData.readUInt16BE(7) / 10 - 4000;
+            pressure = manufacturerData.readUInt16BE(7) / 100 + 500;
         }
 
         if (manufacturerData.readUInt16BE(15)!==65535) {
