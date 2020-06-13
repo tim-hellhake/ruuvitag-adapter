@@ -24,6 +24,7 @@
     "manifest.json",
     "lib/index.js",
     "lib/ruuvitag-adapter.js",
+    "lib/ruuvitag-parser.spec.js",
     "lib/ruuvitag-parser.js"
   ],
   "moziot": {
