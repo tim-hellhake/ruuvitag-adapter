@@ -170,14 +170,24 @@ export class RuuviTagAdapter extends Adapter {
     //        Sometimes I've seen a generated manifest.json in the lib directory
     manifest.id = manifest.id || 'ruuvitag-adapter';
 
+    const config = {
+      temperaturePrecision: 1,
+      humidityPrecision: 0,
+      pressurePrecision: 0,
+      temperatureStep: 0.1,
+      humidityStep: 1,
+      pressureStep: 1,
+    };
     const db = new Database(manifest.id);
     db.open()
     .then(() => { return db.loadConfig(); })
-    .then((config) => {
-      // convert the user facing configuration to the step value
-      config.temperatureStep = +( 1 / (10 ** config.temperaturePrecision) ).toFixed(3);
-      config.humidityStep = +( 1 / (10 ** config.humidityPrecision) ).toFixed(4);
-      config.pressureStep = +( 1 / (10 ** config.pressurePrecision) ).toFixed(2);
+    .then((c) => {
+      config.temperaturePrecision = c.temperaturePrecision;
+      config.humidityPrecision = c.humidityPrecision;
+      config.pressurePrecision = c.pressurePrecision;
+      config.temperatureStep = +( 1 / (10 ** c.temperaturePrecision) ).toFixed(3) ;
+      config.humidityStep = +( 1 / (10 ** c.humidityPrecision) ).toFixed(4);
+      config.pressureStep = +( 1 / (10 ** c.pressurePrecision) ).toFixed(2);
     })
     .catch((e) => console.error(e));
 
