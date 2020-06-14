@@ -9,7 +9,8 @@
 import { Adapter, Device, Property, Database } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
-import { parse, DataV3, DataV5, getMetadata } from './ruuvitag-parser';
+import { parse, DataV3, DataV5 } from './ruuvitag-parser';
+import { getMetadata, scaleTemperature, scaleHumidity,scalePressure, getDefaultConfig, mergeLoadedConfig } from './ruuvitag-scaling';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
@@ -28,16 +29,14 @@ export class RuuviTag extends Device {
     this.config = config;
 
     const data = parse(manufacturerData);
-    const metadata = getMetadata(data.version);
+    const metadata = getMetadata(data.version,config);
 
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
       '@type': 'TemperatureProperty',
       minimum: metadata.temperature.min,
       maximum: metadata.temperature.max,
-      multipleOf: Math.max(
-        metadata.temperature.step,
-        config.temperatureStep),
+      multipleOf: metadata.temperature.step,
       unit: 'degree celsius',
       title: 'temperature',
       description: 'The ambient temperature',
@@ -51,9 +50,7 @@ export class RuuviTag extends Device {
       '@type': 'LevelProperty',
       minimum: metadata.humidity.min,
       maximum: metadata.humidity.max,
-      multipleOf: Math.max(
-        metadata.humidity.step,
-        config.humidityStep),
+      multipleOf: metadata.humidity.step,
       unit: '%',
       title: 'humidity',
       description: 'The relative humidity',
@@ -67,9 +64,7 @@ export class RuuviTag extends Device {
       '@type': 'LevelProperty',
       minimum: metadata.pressure.min,
       maximum: metadata.pressure.max,
-      multipleOf: Math.max(
-        metadata.pressure.step,
-        config.pressureStep),
+      multipleOf: metadata.pressure.step,
       unit: 'hPa',
       title: 'Atmospheric pressure',
       description: 'The atmospheric pressure',
@@ -130,16 +125,11 @@ export class RuuviTag extends Device {
       batteryVoltage
     } = data;
 
-    // convert the reported humidity to the user requested precision
-    const h = +humidity.toFixed(this.config.humidityPrecision);
-    // use method that does not send a message if there is no change in displayed value
-    this.humidityProperty.setCachedValueAndNotify(h);
+    this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity,this.config));
 
-    const t = +temperature.toFixed(this.config.temperaturePrecision);
-    this.temperatureProperty.setCachedValueAndNotify(t);
+    this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature,this.config));
 
-    const p = +pressure.toFixed(this.config.pressurePrecision);
-    this.pressureProperty.setCachedValueAndNotify(p);
+    this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure,this.config));
 
     this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
   }
@@ -170,24 +160,12 @@ export class RuuviTagAdapter extends Adapter {
     //        Sometimes I've seen a generated manifest.json in the lib directory
     manifest.id = manifest.id || 'ruuvitag-adapter';
 
-    const config = {
-      temperaturePrecision: 1,
-      humidityPrecision: 0,
-      pressurePrecision: 0,
-      temperatureStep: 0.1,
-      humidityStep: 1,
-      pressureStep: 1,
-    };
+    const config = getDefaultConfig();
     const db = new Database(manifest.id);
     db.open()
     .then(() => { return db.loadConfig(); })
     .then((c) => {
-      config.temperaturePrecision = c.temperaturePrecision;
-      config.humidityPrecision = c.humidityPrecision;
-      config.pressurePrecision = c.pressurePrecision;
-      config.temperatureStep = +( 1 / (10 ** c.temperaturePrecision) ).toFixed(3) ;
-      config.humidityStep = +( 1 / (10 ** c.humidityPrecision) ).toFixed(4);
-      config.pressureStep = +( 1 / (10 ** c.pressurePrecision) ).toFixed(2);
+      mergeLoadedConfig(config,c);
     })
     .catch((e) => console.error(e));
 
