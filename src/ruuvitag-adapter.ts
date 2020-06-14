@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { Adapter, Device, Property } from 'gateway-addon';
+import { Adapter, Device, Property, Database } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5, getMetadata } from './ruuvitag-parser';
@@ -17,13 +17,15 @@ export class RuuviTag extends Device {
   private pressureProperty: Property;
   private batteryProperty: Property;
   private txPowerProperty?: Property;
+  private config: any;
 
-  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer) {
+  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor'];
     this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
+    this.config = config;
 
     const data = parse(manufacturerData);
     const metadata = getMetadata(data.version);
@@ -33,7 +35,9 @@ export class RuuviTag extends Device {
       '@type': 'TemperatureProperty',
       minimum: metadata.temperature.min,
       maximum: metadata.temperature.max,
-      multipleOf: metadata.temperature.step,
+      multipleOf: Math.max(
+        metadata.temperature.step,
+        config.temperatureStep),
       unit: 'degree celsius',
       title: 'temperature',
       description: 'The ambient temperature',
@@ -47,7 +51,9 @@ export class RuuviTag extends Device {
       '@type': 'LevelProperty',
       minimum: metadata.humidity.min,
       maximum: metadata.humidity.max,
-      multipleOf: metadata.humidity.step,
+      multipleOf: Math.max(
+        metadata.humidity.step,
+        config.humidityStep),
       unit: '%',
       title: 'humidity',
       description: 'The relative humidity',
@@ -61,7 +67,9 @@ export class RuuviTag extends Device {
       '@type': 'LevelProperty',
       minimum: metadata.pressure.min,
       maximum: metadata.pressure.max,
-      multipleOf: metadata.pressure.step,
+      multipleOf: Math.max(
+        metadata.pressure.step,
+        config.pressureStep),
       unit: 'hPa',
       title: 'Atmospheric pressure',
       description: 'The atmospheric pressure',
@@ -122,17 +130,18 @@ export class RuuviTag extends Device {
       batteryVoltage
     } = data;
 
-    this.humidityProperty.setCachedValue(humidity);
-    this.notifyPropertyChanged(this.humidityProperty);
+    // convert the reported humidity to the user requested precision
+    const h = +humidity.toFixed(this.config.humidityPrecision);
+    // use method that does not send a message if there is no change in displayed value
+    this.humidityProperty.setCachedValueAndNotify(h);
 
-    this.temperatureProperty.setCachedValue(temperature);
-    this.notifyPropertyChanged(this.temperatureProperty);
+    const t = +temperature.toFixed(this.config.temperaturePrecision);
+    this.temperatureProperty.setCachedValueAndNotify(t);
 
-    this.pressureProperty.setCachedValue(pressure);
-    this.notifyPropertyChanged(this.pressureProperty);
+    const p = +pressure.toFixed(this.config.pressurePrecision);
+    this.pressureProperty.setCachedValueAndNotify(p);
 
-    this.batteryProperty.setCachedValue(batteryVoltage);
-    this.notifyPropertyChanged(this.batteryProperty);
+    this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
   }
 
   setDataV5(data: DataV5) {
@@ -141,8 +150,7 @@ export class RuuviTag extends Device {
     } = data;
 
     if (this.txPowerProperty) {
-      this.txPowerProperty.setCachedValue(txPower);
-      this.notifyPropertyChanged(this.txPowerProperty);
+      this.txPowerProperty.setCachedValueAndNotify(txPower);
     }
 
     this.setDataV3(data);
@@ -156,6 +164,22 @@ export class RuuviTagAdapter extends Adapter {
     super(addonManager, RuuviTagAdapter.name, manifest.name);
     this.knownDevices = {};
     addonManager.addAdapter(this);
+
+    // @tim - the manifest that is loaded (I can't work out how) does not have the id
+    //        The id is required to load the configuration, so I hack it in here
+    //        Sometimes I've seen a generated manifest.json in the lib directory
+    manifest.id = manifest.id || 'ruuvitag-adapter';
+
+    const db = new Database(manifest.id);
+    db.open()
+    .then(() => { return db.loadConfig(); })
+    .then((config) => {
+      // convert the user facing configuration to the step value
+      config.temperatureStep = +( 1 / (10 ** config.temperaturePrecision) ).toFixed(3);
+      config.humidityStep = +( 1 / (10 ** config.humidityPrecision) ).toFixed(4);
+      config.pressureStep = +( 1 / (10 ** config.pressurePrecision) ).toFixed(2);
+    })
+    .catch((e) => console.error(e));
 
     noble.on('stateChange', (state) => {
       console.log('Noble adapter is %s', state);
@@ -179,7 +203,7 @@ export class RuuviTagAdapter extends Adapter {
 
         if (!knownDevice) {
           console.log(`Detected new RuuviTag with id ${id}`);
-          knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData);
+          knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData, config);
           this.handleDeviceAdded(knownDevice);
           this.knownDevices[id] = knownDevice;
         }
