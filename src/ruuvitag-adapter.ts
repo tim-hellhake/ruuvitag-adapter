@@ -10,7 +10,7 @@ import { Adapter, Device, Property, Database } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5 } from './ruuvitag-parser';
-import { getMetadata, scaleTemperature, scaleHumidity,scalePressure, getDefaultConfig, mergeLoadedConfig } from './ruuvitag-scaling';
+import { getMetadata, scaleTemperature, scaleHumidity, scalePressure, getDefaultConfig, mergeLoadedConfig } from './ruuvitag-scaling';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
