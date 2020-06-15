@@ -161,7 +161,7 @@ export class RuuviTagAdapter extends Adapter {
     manifest.id = manifest.id || 'ruuvitag-adapter';
 
     const config = getDefaultConfig();
-    const db = new Database(manifest.id);
+    const db = new Database(manifest.name);
     db.open()
     .then(() => { return db.loadConfig(); })
     .then((c) => {
