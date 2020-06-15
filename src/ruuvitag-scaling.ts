@@ -76,6 +76,7 @@ export function getMetadata(version: number, config: any) {
 
     throw `Unknown version ${version}`;
 }
+
 export function mergeLoadedConfig(current: any, loaded: any) {
     current.temperaturePrecision = loaded.temperaturePrecision;
     current.humidityPrecision = loaded.humidityPrecision;
