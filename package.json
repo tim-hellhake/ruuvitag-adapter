@@ -25,7 +25,8 @@
     "lib/index.js",
     "lib/ruuvitag-adapter.js",
     "lib/ruuvitag-parser.spec.js",
-    "lib/ruuvitag-parser.js"
+    "lib/ruuvitag-parser.js",
+    "lib/ruuvitag-scaling.js"
   ],
   "moziot": {
     "api": {

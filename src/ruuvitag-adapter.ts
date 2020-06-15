@@ -125,11 +125,11 @@ export class RuuviTag extends Device {
       batteryVoltage
     } = data;
 
-    this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity,this.config));
+    this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity, this.config));
 
-    this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature,this.config));
+    this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature, this.config));
 
-    this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure,this.config));
+    this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure, this.config));
 
     this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
   }
@@ -155,17 +155,12 @@ export class RuuviTagAdapter extends Adapter {
     this.knownDevices = {};
     addonManager.addAdapter(this);
 
-    // @tim - the manifest that is loaded (I can't work out how) does not have the id
-    //        The id is required to load the configuration, so I hack it in here
-    //        Sometimes I've seen a generated manifest.json in the lib directory
-    manifest.id = manifest.id || 'ruuvitag-adapter';
-
     const config = getDefaultConfig();
     const db = new Database(manifest.name);
     db.open()
     .then(() => { return db.loadConfig(); })
     .then((c) => {
-      mergeLoadedConfig(config,c);
+      mergeLoadedConfig(config, c);
     })
     .catch((e) => console.error(e));
 

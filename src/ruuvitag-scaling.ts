@@ -7,15 +7,15 @@
 'use strict';
 import { hPa } from './ruuvitag-parser';
 
-export function scaleTemperature(temperature:number,config:any):number {
+export function scaleTemperature(temperature: number, config: any) : number {
     return +temperature.toFixed(config.temperaturePrecision);
 }
 
-export function scaleHumidity(humidity:number,config:any):number {
+export function scaleHumidity(humidity: number, config: any) : number {
     return +humidity.toFixed(config.humidityPrecision);
 }
 
-export function scalePressure(pressure:number,config:any):number {
+export function scalePressure(pressure: number, config: any) : number {
     return +pressure.toFixed(config.pressurePrecision);
 }
 
