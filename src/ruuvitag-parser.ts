@@ -12,19 +12,19 @@ export function hPa(pa: number) {
 
 export interface DataV3 {
     version: number,
-    humidity: number,
-    temperature: number,
-    pressure: number,
-    batteryVoltage: number
+    humidity: number | null,
+    temperature: number | null,
+    pressure: number | null,
+    batteryVoltage: number | null
 }
 
 export interface DataV5 {
     version: number,
-    temperature: number,
-    humidity: number,
-    pressure: number,
-    batteryVoltage: number,
-    txPower: number
+    temperature: number | null,
+    humidity: number | null,
+    pressure: number | null,
+    batteryVoltage: number | null,
+    txPower: number | null
 }
 
 export function parse(manufacturerData: Buffer): DataV3 | DataV5 {
@@ -65,11 +65,31 @@ export function parse3(payload: Buffer): DataV3 {
 
 export function parse5(payload: Buffer): DataV5 {
     const version = payload.readUInt8(0);
-    const temperature = payload.readInt16BE(1) * 0.005;
-    const humidity = payload.readUInt16BE(3) * 0.0025;
-    const pressure = hPa(payload.readUInt16BE(5) + 50000);
-    const txPower = (payload.readUInt16BE(13) & 0b11111) * 2 - 40;
-    const batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
+
+    let temperature = null;
+    if (payload.readUInt16BE(1) != 0x8000) {
+        temperature = payload.readInt16BE(1) * 0.005;
+    }
+
+    let humidity = null;
+    if (payload.readUInt16BE(3) != 65535) {
+        humidity = payload.readUInt16BE(3) * 0.0025;
+    }
+
+    let pressure = null;
+    if (payload.readUInt16BE(5) != 65535) {
+        pressure = hPa(payload.readUInt16BE(5) + 50000);
+    }
+
+    let txPower = null;
+    if ((payload.readUInt16BE(13) & 0b11111) != 31) {
+        txPower = (payload.readUInt16BE(13) & 0b11111) * 2 - 40;
+    }
+
+    let batteryVoltage = null;
+    if ((payload.readUInt16BE(13) >> 5) != 2047) {
+        batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
+    }
 
     return {
         version,
