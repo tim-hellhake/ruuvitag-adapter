@@ -15,5 +15,42 @@
       "strict_max_version": "*",
       "primary_type": "adapter"
     }
+  },
+  "options": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "temperaturePrecision": {
+          "title": "Temperature precision",
+          "description": "The number of decimal places to show in temperature",
+          "type": "integer",
+          "enum": [ 0, 1, 2, 3 ],
+          "minimum":0,
+          "maximum":3
+        },
+        "humidityPrecision": {
+          "title": "Humidity precision",
+          "description": "The number of decimal places to show in humidity",
+          "type": "integer",
+          "enum": [ 0, 1, 2, 3, 4 ],
+          "minimum":0,
+          "maximum":4
+        },
+        "pressurePrecision": {
+          "title": "Pressure precision",
+          "description": "The number of decimal places to show in atmospheric pressure",
+          "type": "integer",
+          "enum": [ 0, 1, 2 ],
+          "minimum":0,
+          "maximum":2
+        }
+      },
+      "default": {
+        "temperaturePrecision": 1,
+        "humidityPrecision": 0,
+        "pressurePrecision": 0
+      },
+      "required": ["temperaturePrecision", "humidityPrecision", "pressurePrecision"]
+    }
   }
 }

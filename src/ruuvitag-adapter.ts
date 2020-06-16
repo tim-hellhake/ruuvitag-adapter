@@ -9,7 +9,8 @@
 import { Adapter, Device, Property } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
-import { parse, DataV3, DataV5, getMetadata } from './ruuvitag-parser';
+import { parse, DataV3, DataV5 } from './ruuvitag-parser';
+import { getMetadata, scaleTemperature, scaleHumidity, scalePressure, getDefaultConfig, mergeLoadedConfig } from './ruuvitag-scaling';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
@@ -17,16 +18,18 @@ export class RuuviTag extends Device {
   private pressureProperty: Property;
   private batteryProperty: Property;
   private txPowerProperty?: Property;
+  private config: any;
 
-  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer) {
+  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor'];
     this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
+    this.config = config;
 
     const data = parse(manufacturerData);
-    const metadata = getMetadata(data.version);
+    const metadata = getMetadata(data.version, config);
 
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
@@ -122,17 +125,13 @@ export class RuuviTag extends Device {
       batteryVoltage
     } = data;
 
-    this.humidityProperty.setCachedValue(humidity);
-    this.notifyPropertyChanged(this.humidityProperty);
+    this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity, this.config));
 
-    this.temperatureProperty.setCachedValue(temperature);
-    this.notifyPropertyChanged(this.temperatureProperty);
+    this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature, this.config));
 
-    this.pressureProperty.setCachedValue(pressure);
-    this.notifyPropertyChanged(this.pressureProperty);
+    this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure, this.config));
 
-    this.batteryProperty.setCachedValue(batteryVoltage);
-    this.notifyPropertyChanged(this.batteryProperty);
+    this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
   }
 
   setDataV5(data: DataV5) {
@@ -141,8 +140,7 @@ export class RuuviTag extends Device {
     } = data;
 
     if (this.txPowerProperty) {
-      this.txPowerProperty.setCachedValue(txPower);
-      this.notifyPropertyChanged(this.txPowerProperty);
+      this.txPowerProperty.setCachedValueAndNotify(txPower);
     }
 
     this.setDataV3(data);
@@ -156,6 +154,8 @@ export class RuuviTagAdapter extends Adapter {
     super(addonManager, RuuviTagAdapter.name, manifest.name);
     this.knownDevices = {};
     addonManager.addAdapter(this);
+
+    const config = mergeLoadedConfig(getDefaultConfig(), manifest.moziot.config);
 
     noble.on('stateChange', (state) => {
       console.log('Noble adapter is %s', state);
@@ -179,7 +179,7 @@ export class RuuviTagAdapter extends Adapter {
 
         if (!knownDevice) {
           console.log(`Detected new RuuviTag with id ${id}`);
-          knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData);
+          knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData, config);
           this.handleDeviceAdded(knownDevice);
           this.knownDevices[id] = knownDevice;
         }
