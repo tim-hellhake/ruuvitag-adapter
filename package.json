@@ -28,14 +28,6 @@
     "lib/ruuvitag-parser.js",
     "lib/ruuvitag-scaling.js"
   ],
-  "moziot": {
-    "api": {
-      "min": 2,
-      "max": 2
-    },
-    "plugin": true,
-    "exec": "{nodeLoader} {path}"
-  },
   "dependencies": {
     "@abandonware/noble": "1.9.2-9"
   },
