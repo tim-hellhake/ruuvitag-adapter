@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { Adapter, Device, Property, Database } from 'gateway-addon';
+import { Adapter, Device, Property } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5 } from './ruuvitag-parser';
@@ -155,14 +155,7 @@ export class RuuviTagAdapter extends Adapter {
     this.knownDevices = {};
     addonManager.addAdapter(this);
 
-    const config = getDefaultConfig();
-    const db = new Database(manifest.name);
-    db.open()
-    .then(() => { return db.loadConfig(); })
-    .then((c) => {
-      mergeLoadedConfig(config, c);
-    })
-    .catch((e) => console.error(e));
+    const config = mergeLoadedConfig(getDefaultConfig(), manifest.moziot.config);
 
     noble.on('stateChange', (state) => {
       console.log('Noble adapter is %s', state);
