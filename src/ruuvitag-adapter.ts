@@ -125,13 +125,21 @@ export class RuuviTag extends Device {
       batteryVoltage
     } = data;
 
-    this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity, this.config));
+    if (humidity !== null) {
+      this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity, this.config));
+    }
 
-    this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature, this.config));
+    if (temperature !== null) {
+      this.temperatureProperty.setCachedValueAndNotify(scaleTemperature(temperature, this.config));
+    }
 
-    this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure, this.config));
+    if (pressure !== null) {
+      this.pressureProperty.setCachedValueAndNotify(scalePressure(pressure, this.config));
+    }
 
-    this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
+    if (batteryVoltage !== null) {
+      this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
+    }
   }
 
   setDataV5(data: DataV5) {
@@ -139,7 +147,7 @@ export class RuuviTag extends Device {
       txPower
     } = data;
 
-    if (this.txPowerProperty) {
+    if (this.txPowerProperty && txPower !== null) {
       this.txPowerProperty.setCachedValueAndNotify(txPower);
     }
 

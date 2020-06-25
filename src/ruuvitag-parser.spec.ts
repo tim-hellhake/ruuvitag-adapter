@@ -54,38 +54,44 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
     const sample = <DataV5>parse(Buffer.from(manufacturerId + "0512FC5394C37C0004FFFC040CAC364200CDCBB8334C884F", "hex"));
     const minimum = <DataV5>parse(Buffer.from(manufacturerId + "058001000000008001800180010000000000CBB8334C884F", "hex"));
     const maximum = <DataV5>parse(Buffer.from(manufacturerId + "057FFFFFFEFFFE7FFF7FFF7FFFFFDEFEFFFECBB8334C884F", "hex"));
+    const invalid = <DataV5>parse(Buffer.from(manufacturerId + "058000FFFFFFFF800080008000FFFFFFFFFFFFFFFFFFFFFF", "hex"));
 
     it('version should be parsed correctly', () => {
         expect(sample.version).to.equal(5);
     });
 
-    it('humidity should be parsed correctly', () => {
+    it('temperature should be parsed correctly', () => {
         expect(sample.temperature).to.equal(24.3);
         expect(minimum.temperature).to.equal(-163.835);
         expect(maximum.temperature).to.equal(163.835);
+        expect(invalid.temperature).to.be.null;
     });
 
-    it('temperature should be parsed correctly', () => {
+    it('humidity should be parsed correctly', () => {
         expect(sample.humidity).to.equal(53.49);
         expect(minimum.humidity).to.equal(0);
         expect(maximum.humidity).to.equal(163.835);
+        expect(invalid.humidity).to.be.null;
     });
 
     it('pressure should be parsed correctly', () => {
         expect(sample.pressure).to.equal(hPa(100044));
         expect(minimum.pressure).to.equal(hPa(50000));
         expect(maximum.pressure).to.equal(hPa(115534));
+        expect(invalid.pressure).to.be.null;
     });
 
     it('tx power should be parsed correctly', () => {
         expect(sample.txPower).to.equal(4);
         expect(minimum.txPower).to.equal(-40);
         expect(maximum.txPower).to.equal(20);
+        expect(invalid.txPower).to.be.null;
     });
 
     it('batteryVoltage should be parsed correctly', () => {
         expect(sample.batteryVoltage).to.equal(2.977);
         expect(minimum.batteryVoltage).to.equal(1.6);
         expect(maximum.batteryVoltage).to.equal(3.646);
+        expect(invalid.batteryVoltage).to.be.null;
     });
 });
