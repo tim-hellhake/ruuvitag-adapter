@@ -1,5 +1,14 @@
 #!/bin/bash -e
 
+# Load nvm
+if [ -d "${HOME}/.nvm" ]; then
+  export NVM_DIR="${HOME}/.nvm"
+  [ -s "${NVM_DIR}/nvm.sh" ] && source "${NVM_DIR}/nvm.sh"
+fi
+
+umask 0
+which npm && npm config set cache /tmp/.npm
+
 npm ci
 npm run build
 rm -rf node_modules
