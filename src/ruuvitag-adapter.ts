@@ -6,7 +6,7 @@
 
 'use strict';
 
-import { Adapter, Device, Property } from 'gateway-addon';
+import { Adapter, Device, Property, Event } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5 } from './ruuvitag-parser';
@@ -18,6 +18,8 @@ export class RuuviTag extends Device {
   private pressureProperty: Property;
   private batteryProperty: Property;
   private txPowerProperty?: Property;
+  private movementCounterProperty?: Property;
+  private lastMovementCounter = 0;
   private config: any;
 
   constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
@@ -102,6 +104,28 @@ export class RuuviTag extends Device {
 
       this.properties.set('txPower', this.txPowerProperty);
     }
+
+    if (data.version == 5) {
+      this.movementCounterProperty = new Property(this, 'movementCounter', {
+        type: 'integer',
+        minimum: metadata.movementCounter?.min,
+        maximum: metadata.movementCounter?.max,
+        multipleOf: metadata.movementCounter?.step,
+        title: 'Movement counter',
+        description: 'The number of detected movements',
+        readOnly: true
+      });
+
+      this.properties.set('movementCounter', this.movementCounterProperty);
+
+      this.events.set('movement', {
+        name: 'movement',
+        metadata: {
+          description: 'Movement detected',
+          type: 'string'
+        }
+      });
+    }
   }
 
   setData(manufacturerData: Buffer) {
@@ -144,11 +168,21 @@ export class RuuviTag extends Device {
 
   setDataV5(data: DataV5) {
     const {
-      txPower
+      txPower,
+      movementCounter
     } = data;
 
     if (this.txPowerProperty && txPower !== null) {
       this.txPowerProperty.setCachedValueAndNotify(txPower);
+    }
+
+    if (this.movementCounterProperty && movementCounter !== null) {
+      this.movementCounterProperty.setCachedValueAndNotify(movementCounter);
+
+      if(this.lastMovementCounter != movementCounter) {
+        this.lastMovementCounter = movementCounter;
+        this.eventNotify(new Event(this, 'movement'));
+      }
     }
 
     this.setDataV3(data);

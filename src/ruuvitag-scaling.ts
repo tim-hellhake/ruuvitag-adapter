@@ -70,6 +70,11 @@ export function getMetadata(version: number, config: any) {
                     min: 1.6,
                     max: 3.647,
                     step: 0.001
+                },
+                movementCounter: {
+                    min: 0,
+                    max: 254,
+                    step: 1
                 }
             };
     }

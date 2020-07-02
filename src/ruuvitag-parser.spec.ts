@@ -94,4 +94,11 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
         expect(maximum.batteryVoltage).to.equal(3.646);
         expect(invalid.batteryVoltage).to.be.null;
     });
+
+    it('movementCounter should be parsed correctly', () => {
+        expect(sample.movementCounter).to.equal(66);
+        expect(minimum.movementCounter).to.equal(0);
+        expect(maximum.movementCounter).to.equal(254);
+        expect(invalid.movementCounter).to.be.null;
+    });
 });

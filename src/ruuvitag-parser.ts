@@ -24,7 +24,8 @@ export interface DataV5 {
     humidity: number | null,
     pressure: number | null,
     batteryVoltage: number | null,
-    txPower: number | null
+    txPower: number | null,
+    movementCounter: number | null
 }
 
 export function parse(manufacturerData: Buffer): DataV3 | DataV5 {
@@ -91,6 +92,11 @@ export function parse5(payload: Buffer): DataV5 {
         batteryVoltage = parseFloat((((payload.readUInt16BE(13) >> 5) / 1000) + 1.6).toFixed(3));
     }
 
+    let movementCounter = null;
+    if (payload.readUInt8(15) != 255) {
+        movementCounter = payload.readUInt8(15);
+    }
+
     return {
         version,
         temperature,
@@ -98,5 +104,6 @@ export function parse5(payload: Buffer): DataV5 {
         pressure,
         txPower,
         batteryVoltage,
+        movementCounter
     }
 }
