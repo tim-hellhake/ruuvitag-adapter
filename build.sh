@@ -1,12 +1,10 @@
-#!/bin/bash
-
-set -e
+#!/bin/bash -e
 
 ADDON_ARCH="$1"
 LANGUAGE_NAME="$2"
 LANGUAGE_VERSION="$3"
 
-function map_posix_tools {
+function map_posix_tools() {
   tar() {
     gtar "$@"
     return $!
@@ -26,32 +24,39 @@ function map_posix_tools {
   export -f find
 }
 
-function install_osx_compiler {
-  brew install boost cmake coreutils eigen findutils gnu-tar pkg-config
+function install_osx_compiler() {
+  brew install \
+    boost \
+    cmake \
+    coreutils \
+    eigen \
+    findutils \
+    gnu-tar \
+    pkg-config
   map_posix_tools
 }
 
-function install_linux_cross_compiler {
+function install_linux_cross_compiler() {
   sudo apt -qq update
   sudo apt install --no-install-recommends -y \
-  binfmt-support \
-  qemu \
-  qemu-user-static
+    binfmt-support \
+    qemu \
+    qemu-user-static
   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 }
 
-function build {
+function build_native() {
   ADDON_ARCH=${ADDON_ARCH} ./package.sh
 }
 
-function build_cross_compiled {
+function build_cross_compiled() {
   docker run --rm -t -v $PWD:/build mozillaiot/toolchain-${ADDON_ARCH}-${LANGUAGE_NAME}-${LANGUAGE_VERSION} bash -c "cd /build; ADDON_ARCH=${ADDON_ARCH} ./package.sh"
 }
 
 case "${ADDON_ARCH}" in
   darwin-x64)
     install_osx_compiler
-    build
+    build_native
     ;;
 
   linux-arm)
@@ -70,6 +75,7 @@ case "${ADDON_ARCH}" in
     ;;
 
   *)
-    build
+    echo "Unsupported architecture"
+    exit 1
     ;;
 esac
