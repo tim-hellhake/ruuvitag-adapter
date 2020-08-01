@@ -25,7 +25,7 @@ export class RuuviTag extends Device {
   constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
-    this['@type'] = ['TemperatureSensor'];
+    this['@type'] = ['TemperatureSensor', 'HumiditySensor'];
     this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
     this.config = config;
@@ -49,7 +49,7 @@ export class RuuviTag extends Device {
 
     this.humidityProperty = new Property(this, 'humidity', {
       type: 'number',
-      '@type': 'LevelProperty',
+      '@type': 'HumidityProperty',
       minimum: metadata.humidity.min,
       maximum: metadata.humidity.max,
       multipleOf: metadata.humidity.step,
