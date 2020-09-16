@@ -25,7 +25,7 @@ export class RuuviTag extends Device {
   constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
-    this['@type'] = ['TemperatureSensor', 'HumiditySensor'];
+    this['@type'] = ['TemperatureSensor', 'HumiditySensor', 'BarometricPressureSensor'];
     this.name = `RuuviTag (${address || id})`;
     this.description = manifest.description;
     this.config = config;
@@ -63,7 +63,7 @@ export class RuuviTag extends Device {
 
     this.pressureProperty = new Property(this, 'pressure', {
       type: 'number',
-      '@type': 'LevelProperty',
+      '@type': 'BarometricPressureProperty',
       minimum: metadata.pressure.min,
       maximum: metadata.pressure.max,
       multipleOf: metadata.pressure.step,
@@ -179,7 +179,7 @@ export class RuuviTag extends Device {
     if (this.movementCounterProperty && movementCounter !== null) {
       this.movementCounterProperty.setCachedValueAndNotify(movementCounter);
 
-      if(this.lastMovementCounter != movementCounter) {
+      if (this.lastMovementCounter != movementCounter) {
         this.lastMovementCounter = movementCounter;
         this.eventNotify(new Event(this, 'movement'));
       }
