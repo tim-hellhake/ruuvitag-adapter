@@ -43,12 +43,17 @@
           "enum": [ 0, 1, 2 ],
           "minimum":0,
           "maximum":2
+        },
+        "debug": {
+          "type": "boolean",
+          "title": "Enable debug logs"
         }
       },
       "default": {
         "temperaturePrecision": 1,
         "humidityPrecision": 0,
-        "pressurePrecision": 0
+        "pressurePrecision": 0,
+        "debug": false
       },
       "required": ["temperaturePrecision", "humidityPrecision", "pressurePrecision"]
     }

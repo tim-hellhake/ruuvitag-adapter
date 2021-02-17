@@ -33,6 +33,10 @@ export class RuuviTag extends Device {
     const data = parse(manufacturerData);
     const metadata = getMetadata(data.version, config);
 
+    if(config.debug) {
+      console.log(`Received ${JSON.stringify(data)} from ${id}`);
+    }
+
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
       '@type': 'TemperatureProperty',
