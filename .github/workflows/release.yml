@@ -78,6 +78,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.version }}
+    - name: npm test
+      run: |
+        npm ci
+        npm run test
     - name: Build adapter
       run: |
         ./build.sh "${{ matrix.platform }}" "${{ matrix.language }}" "${{ matrix.version }}"
