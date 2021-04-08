@@ -224,7 +224,8 @@ export class RuuviTagAdapter extends Adapter {
         let knownDevice = this.knownDevices[id];
 
         if (!knownDevice) {
-          console.log(`Detected new RuuviTag with id ${id}`);
+          const data = parse(manufacturerData);
+          console.log(`Detected new v${data.version} RuuviTag with id ${id}`);
           knownDevice = new RuuviTag(this, manifest, id, address, manufacturerData, config);
           this.handleDeviceAdded(knownDevice);
           this.knownDevices[id] = knownDevice;
