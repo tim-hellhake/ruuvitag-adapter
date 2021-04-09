@@ -46,6 +46,24 @@ describe('Data Format 3 Protocol Specification (RAWv1)', () => {
         expect(minimum.batteryVoltage).to.equal(0);
         expect(maximum.batteryVoltage).to.equal(65.535);
     });
+
+    it('accX should be parsed correctly', () => {
+        expect(sample.accX).to.equal(-1);
+        expect(minimum.accX).to.equal(-32.767);
+        expect(maximum.accX).to.equal(32.767);
+    });
+
+    it('accY should be parsed correctly', () => {
+        expect(sample.accY).to.equal(-1.726);
+        expect(minimum.accY).to.equal(-32.767);
+        expect(maximum.accY).to.equal(32.767);
+    });
+
+    it('accZ should be parsed correctly', () => {
+        expect(sample.accZ).to.equal(0.714);
+        expect(minimum.accZ).to.equal(-32.767);
+        expect(maximum.accZ).to.equal(32.767);
+    });
 });
 
 describe('Data Format 5 Protocol Specification (RAWv2)', () => {
@@ -93,6 +111,24 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
         expect(minimum.batteryVoltage).to.equal(1.6);
         expect(maximum.batteryVoltage).to.equal(3.646);
         expect(invalid.batteryVoltage).to.be.null;
+    });
+
+    it('accX should be parsed correctly', () => {
+        expect(sample.accX).to.equal(0.004);
+        expect(minimum.accX).to.equal(-32.767);
+        expect(maximum.accX).to.equal(32.767);
+    });
+
+    it('accY should be parsed correctly', () => {
+        expect(sample.accY).to.equal(-0.004);
+        expect(minimum.accY).to.equal(-32.767);
+        expect(maximum.accY).to.equal(32.767);
+    });
+
+    it('accZ should be parsed correctly', () => {
+        expect(sample.accZ).to.equal(1.036);
+        expect(minimum.accZ).to.equal(-32.767);
+        expect(maximum.accZ).to.equal(32.767);
     });
 
     it('movementCounter should be parsed correctly', () => {

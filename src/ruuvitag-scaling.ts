@@ -42,6 +42,21 @@ export function getMetadata(version: number, config: any) {
                     min: 1.6,
                     max: 3.647,
                     step: 0.001
+                },
+                accX: {
+                    min: -32.767,
+                    max: 32.767,
+                    step: 0.001
+                },
+                accY: {
+                    min: -32.767,
+                    max: 32.767,
+                    step: 0.001
+                },
+                accZ: {
+                    min: -32.767,
+                    max: 32.767,
+                    step: 0.001
                 }
             };
         case 5:
@@ -69,6 +84,21 @@ export function getMetadata(version: number, config: any) {
                 batteryVoltage: {
                     min: 1.6,
                     max: 3.647,
+                    step: 0.001
+                },
+                accX: {
+                    min: -32.767,
+                    max: 32.767,
+                    step: 0.001
+                },
+                accY: {
+                    min: -32.767,
+                    max: 32.767,
+                    step: 0.001
+                },
+                accZ: {
+                    min: -32.767,
+                    max: 32.767,
                     step: 0.001
                 },
                 movementCounter: {

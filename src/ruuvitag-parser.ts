@@ -15,7 +15,10 @@ export interface DataV3 {
     humidity: number | null,
     temperature: number | null,
     pressure: number | null,
-    batteryVoltage: number | null
+    batteryVoltage: number | null,
+    accX: number | null,
+    accY: number | null,
+    accZ: number | null
 }
 
 export interface DataV5 {
@@ -24,6 +27,9 @@ export interface DataV5 {
     humidity: number | null,
     pressure: number | null,
     batteryVoltage: number | null,
+    accX: number | null,
+    accY: number | null,
+    accZ: number | null
     txPower: number | null,
     movementCounter: number | null
 }
@@ -55,12 +61,19 @@ export function parse3(payload: Buffer): DataV3 {
     const pressure = hPa(payload.readUInt16BE(4) + 50000);
     const batteryVoltage = payload.readUInt16BE(12) / 1000;
 
+    const accX = payload.readInt16BE(6) / 1000;
+    const accY = payload.readInt16BE(8) / 1000;
+    const accZ = payload.readInt16BE(10) / 1000;
+
     return {
         version,
         humidity,
         temperature,
         pressure,
-        batteryVoltage
+        batteryVoltage,
+        accX,
+        accY,
+        accZ
     }
 }
 
@@ -97,6 +110,10 @@ export function parse5(payload: Buffer): DataV5 {
         movementCounter = payload.readUInt8(15);
     }
 
+    const accX = payload.readInt16BE(7) / 1000;
+    const accY = payload.readInt16BE(9) / 1000;
+    const accZ = payload.readInt16BE(11) / 1000;
+
     return {
         version,
         temperature,
@@ -104,6 +121,9 @@ export function parse5(payload: Buffer): DataV5 {
         pressure,
         txPower,
         batteryVoltage,
-        movementCounter
+        movementCounter,
+        accX,
+        accY,
+        accZ
     }
 }

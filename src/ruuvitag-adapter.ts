@@ -17,6 +17,9 @@ export class RuuviTag extends Device {
   private humidityProperty: Property;
   private pressureProperty: Property;
   private batteryProperty: Property;
+  private accXProperty: Property;
+  private accYProperty: Property;
+  private accZProperty: Property;
   private txPowerProperty?: Property;
   private movementCounterProperty?: Property;
   private lastMovementCounter = 0;
@@ -93,6 +96,45 @@ export class RuuviTag extends Device {
 
     this.properties.set('battery', this.batteryProperty);
 
+    this.accXProperty = new Property(this, 'accX', {
+      type: 'number',
+      '@type': 'LevelProperty',
+      minimum: metadata.accX.min,
+      maximum: metadata.accX.max,
+      multipleOf: metadata.accX.step,
+      unit: 'metre per second squared',
+      title: 'Acceleration x',
+      readOnly: true
+    });
+
+    this.properties.set('accX', this.accXProperty);
+
+    this.accYProperty = new Property(this, 'accY', {
+      type: 'number',
+      '@type': 'LevelProperty',
+      minimum: metadata.accY.min,
+      maximum: metadata.accY.max,
+      multipleOf: metadata.accY.step,
+      unit: 'metre per second squared',
+      title: 'Acceleration y',
+      readOnly: true
+    });
+
+    this.properties.set('accY', this.accYProperty);
+
+    this.accZProperty = new Property(this, 'accZ', {
+      type: 'number',
+      '@type': 'LevelProperty',
+      minimum: metadata.accZ.min,
+      maximum: metadata.accZ.max,
+      multipleOf: metadata.accZ.step,
+      unit: 'metre per second squared',
+      title: 'Acceleration z',
+      readOnly: true
+    });
+
+    this.properties.set('accZ', this.accZProperty);
+
     if (data.version == 5) {
       this.txPowerProperty = new Property(this, 'txPower', {
         type: 'integer',
@@ -150,7 +192,10 @@ export class RuuviTag extends Device {
       humidity,
       temperature,
       pressure,
-      batteryVoltage
+      batteryVoltage,
+      accX,
+      accY,
+      accZ
     } = data;
 
     if (humidity !== null) {
@@ -167,6 +212,18 @@ export class RuuviTag extends Device {
 
     if (batteryVoltage !== null) {
       this.batteryProperty.setCachedValueAndNotify(batteryVoltage);
+    }
+
+    if (accX !== null) {
+      this.accXProperty.setCachedValueAndNotify(accX);
+    }
+
+    if (accY !== null) {
+      this.accYProperty.setCachedValueAndNotify(accY);
+    }
+
+    if (accZ !== null) {
+      this.accZProperty.setCachedValueAndNotify(accZ);
     }
   }
 
