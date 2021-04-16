@@ -31,7 +31,8 @@ export interface DataV5 {
     accY: number | null,
     accZ: number | null
     txPower: number | null,
-    movementCounter: number | null
+    movementCounter: number | null,
+    measurementCounter: number | null
 }
 
 export function parse(manufacturerData: Buffer): DataV3 | DataV5 {
@@ -114,6 +115,11 @@ export function parse5(payload: Buffer): DataV5 {
     const accY = payload.readInt16BE(9) / 1000;
     const accZ = payload.readInt16BE(11) / 1000;
 
+    let measurementCounter = null;
+    if (payload.readUInt16BE(16) != 65535) {
+        measurementCounter = payload.readUInt16BE(16);
+    }
+
     return {
         version,
         temperature,
@@ -124,6 +130,7 @@ export function parse5(payload: Buffer): DataV5 {
         movementCounter,
         accX,
         accY,
-        accZ
+        accZ,
+        measurementCounter
     }
 }

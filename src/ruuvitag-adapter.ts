@@ -22,6 +22,7 @@ export class RuuviTag extends Device {
   private accZProperty: Property;
   private txPowerProperty?: Property;
   private movementCounterProperty?: Property;
+  private measurementCounterProperty?: Property;
   private lastMovementCounter = 0;
   private config: any;
 
@@ -171,6 +172,18 @@ export class RuuviTag extends Device {
           type: 'string'
         }
       });
+
+      this.measurementCounterProperty = new Property(this, 'measurementCounter', {
+        type: 'integer',
+        minimum: metadata.measurementCounter?.min,
+        maximum: metadata.measurementCounter?.max,
+        multipleOf: metadata.measurementCounter?.step,
+        title: 'Measurement counter',
+        description: 'The number of measurements',
+        readOnly: true
+      });
+
+      this.properties.set('measurementCounter', this.measurementCounterProperty);
     }
   }
 
@@ -230,7 +243,8 @@ export class RuuviTag extends Device {
   setDataV5(data: DataV5) {
     const {
       txPower,
-      movementCounter
+      movementCounter,
+      measurementCounter
     } = data;
 
     if (this.txPowerProperty && txPower !== null) {
@@ -244,6 +258,10 @@ export class RuuviTag extends Device {
         this.lastMovementCounter = movementCounter;
         this.eventNotify(new Event(this, 'movement'));
       }
+    }
+
+    if (this.measurementCounterProperty && measurementCounter !== null) {
+      this.measurementCounterProperty.setCachedValueAndNotify(measurementCounter);
     }
 
     this.setDataV3(data);

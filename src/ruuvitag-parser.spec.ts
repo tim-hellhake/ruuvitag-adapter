@@ -137,4 +137,11 @@ describe('Data Format 5 Protocol Specification (RAWv2)', () => {
         expect(maximum.movementCounter).to.equal(254);
         expect(invalid.movementCounter).to.be.null;
     });
+
+    it('measurementCounter should be parsed correctly', () => {
+        expect(sample.measurementCounter).to.equal(205);
+        expect(minimum.measurementCounter).to.equal(0);
+        expect(maximum.measurementCounter).to.equal(65534);
+        expect(invalid.measurementCounter).to.be.null;
+    });
 });

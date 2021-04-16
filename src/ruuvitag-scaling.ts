@@ -105,6 +105,11 @@ export function getMetadata(version: number, config: any) {
                     min: 0,
                     max: 254,
                     step: 1
+                },
+                measurementCounter:{
+                    min: 0,
+                    max: 65534,
+                    step: 1
                 }
             };
     }
