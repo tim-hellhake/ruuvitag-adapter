@@ -23,7 +23,9 @@ export class RuuviTag extends Device {
   private txPowerProperty?: Property;
   private movementCounterProperty?: Property;
   private measurementCounterProperty?: Property;
+  private packetLossProperty?: Property;
   private lastMovementCounter = 0;
+  private lastMeasurementCounter = 0;
   private config: any;
 
   constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
@@ -184,6 +186,18 @@ export class RuuviTag extends Device {
       });
 
       this.properties.set('measurementCounter', this.measurementCounterProperty);
+
+      this.packetLossProperty = new Property(this, 'packetLoss', {
+        type: 'integer',
+        minimum: metadata.measurementCounter?.min,
+        maximum: metadata.measurementCounter?.max,
+        multipleOf: metadata.measurementCounter?.step,
+        title: 'Packet loss',
+        description: 'The number of lost packets',
+        readOnly: true
+      });
+
+      this.properties.set('packetLoss', this.packetLossProperty);
     }
   }
 
@@ -262,6 +276,14 @@ export class RuuviTag extends Device {
 
     if (this.measurementCounterProperty && measurementCounter !== null) {
       this.measurementCounterProperty.setCachedValueAndNotify(measurementCounter);
+
+      if (this.lastMeasurementCounter != measurementCounter) {
+        if(typeof this.lastMeasurementCounter === 'number') {
+          const diff = Math.abs(this.lastMeasurementCounter - measurementCounter);
+          this.packetLossProperty?.setCachedValueAndNotify(diff);
+        }
+        this.lastMeasurementCounter = measurementCounter;
+      }
     }
 
     this.setDataV3(data);
