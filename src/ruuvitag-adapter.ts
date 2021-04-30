@@ -152,9 +152,7 @@ export class RuuviTag extends Device {
       });
 
       this.properties.set('txPower', this.txPowerProperty);
-    }
 
-    if (data.version == 5) {
       this.movementCounterProperty = new Property(this, 'movementCounter', {
         type: 'integer',
         minimum: metadata.movementCounter?.min,
