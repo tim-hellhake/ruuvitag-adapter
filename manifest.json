@@ -3,7 +3,7 @@
   "id": "ruuvitag-adapter",
   "name": "RuuviTag",
   "short_name": "RuuviTag",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Connect your RuuviTags (bluetooth environmental sensor)",
   "homepage_url": "https://github.com/tim-hellhake/ruuvitag-adapter#readme",
   "license": "MPL-2.0",
@@ -24,25 +24,40 @@
           "title": "Temperature precision",
           "description": "The number of decimal places to show in temperature",
           "type": "integer",
-          "enum": [ 0, 1, 2, 3 ],
-          "minimum":0,
-          "maximum":3
+          "enum": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "minimum": 0,
+          "maximum": 3
         },
         "humidityPrecision": {
           "title": "Humidity precision",
           "description": "The number of decimal places to show in humidity",
           "type": "integer",
-          "enum": [ 0, 1, 2, 3, 4 ],
-          "minimum":0,
-          "maximum":4
+          "enum": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "minimum": 0,
+          "maximum": 4
         },
         "pressurePrecision": {
           "title": "Pressure precision",
           "description": "The number of decimal places to show in atmospheric pressure",
           "type": "integer",
-          "enum": [ 0, 1, 2 ],
-          "minimum":0,
-          "maximum":2
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "minimum": 0,
+          "maximum": 2
         },
         "debug": {
           "type": "boolean",
@@ -55,7 +70,11 @@
         "pressurePrecision": 0,
         "debug": false
       },
-      "required": ["temperaturePrecision", "humidityPrecision", "pressurePrecision"]
+      "required": [
+        "temperaturePrecision",
+        "humidityPrecision",
+        "pressurePrecision"
+      ]
     }
   }
 }
