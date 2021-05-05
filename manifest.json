@@ -24,12 +24,6 @@
           "title": "Temperature precision",
           "description": "The number of decimal places to show in temperature",
           "type": "integer",
-          "enum": [
-            0,
-            1,
-            2,
-            3
-          ],
           "minimum": 0,
           "maximum": 3
         },
@@ -37,13 +31,6 @@
           "title": "Humidity precision",
           "description": "The number of decimal places to show in humidity",
           "type": "integer",
-          "enum": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
           "minimum": 0,
           "maximum": 4
         },
@@ -51,11 +38,6 @@
           "title": "Pressure precision",
           "description": "The number of decimal places to show in atmospheric pressure",
           "type": "integer",
-          "enum": [
-            0,
-            1,
-            2
-          ],
           "minimum": 0,
           "maximum": 2
         },
