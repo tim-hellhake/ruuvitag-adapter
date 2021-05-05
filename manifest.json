@@ -41,6 +41,28 @@
           "minimum": 0,
           "maximum": 2
         },
+        "features": {
+          "title": "Features",
+          "type": "object",
+          "properties": {
+            "acceleration": {
+              "type": "boolean",
+              "title": "Acceleration"
+            },
+            "txPower": {
+              "type": "boolean",
+              "title": "TX Power"
+            },
+            "movementCounter": {
+              "type": "boolean",
+              "title": "Movement counter"
+            },
+            "measurementCounter": {
+              "type": "boolean",
+              "title": "Measurement counter"
+            }
+          }
+        },
         "debug": {
           "type": "boolean",
           "title": "Enable debug logs"
@@ -50,6 +72,12 @@
         "temperaturePrecision": 1,
         "humidityPrecision": 0,
         "pressurePrecision": 0,
+        "features": {
+          "acceleration": true,
+          "txPower": true,
+          "movementCounter": true,
+          "measurementCounter": true
+        },
         "debug": false
       },
       "required": [

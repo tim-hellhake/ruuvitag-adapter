@@ -10,16 +10,16 @@ import { Adapter, Device, Property, Event } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5 } from './ruuvitag-parser';
-import { getMetadata, scaleTemperature, scaleHumidity, scalePressure, getDefaultConfig, mergeLoadedConfig } from './ruuvitag-scaling';
+import { getMetadata, scaleTemperature, scaleHumidity, scalePressure } from './ruuvitag-scaling';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
   private humidityProperty: Property;
   private pressureProperty: Property;
   private batteryProperty: Property;
-  private accXProperty: Property;
-  private accYProperty: Property;
-  private accZProperty: Property;
+  private accXProperty?: Property;
+  private accYProperty?: Property;
+  private accZProperty?: Property;
   private txPowerProperty?: Property;
   private movementCounterProperty?: Property;
   private measurementCounterProperty?: Property;
@@ -42,6 +42,13 @@ export class RuuviTag extends Device {
     if(config.debug) {
       console.log(`Received ${JSON.stringify(data)} from ${id}`);
     }
+
+    const {
+      acceleration,
+      txPower,
+      movementCounter,
+      measurementCounter,
+    } = config.features ?? {};
 
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
@@ -99,103 +106,111 @@ export class RuuviTag extends Device {
 
     this.properties.set('battery', this.batteryProperty);
 
-    this.accXProperty = new Property(this, 'accX', {
-      type: 'number',
-      '@type': 'LevelProperty',
-      minimum: metadata.accX.min,
-      maximum: metadata.accX.max,
-      multipleOf: metadata.accX.step,
-      unit: 'metre per second squared',
-      title: 'Acceleration x',
-      readOnly: true
-    });
-
-    this.properties.set('accX', this.accXProperty);
-
-    this.accYProperty = new Property(this, 'accY', {
-      type: 'number',
-      '@type': 'LevelProperty',
-      minimum: metadata.accY.min,
-      maximum: metadata.accY.max,
-      multipleOf: metadata.accY.step,
-      unit: 'metre per second squared',
-      title: 'Acceleration y',
-      readOnly: true
-    });
-
-    this.properties.set('accY', this.accYProperty);
-
-    this.accZProperty = new Property(this, 'accZ', {
-      type: 'number',
-      '@type': 'LevelProperty',
-      minimum: metadata.accZ.min,
-      maximum: metadata.accZ.max,
-      multipleOf: metadata.accZ.step,
-      unit: 'metre per second squared',
-      title: 'Acceleration z',
-      readOnly: true
-    });
-
-    this.properties.set('accZ', this.accZProperty);
+    if(acceleration) {
+      this.accXProperty = new Property(this, 'accX', {
+        type: 'number',
+        '@type': 'LevelProperty',
+        minimum: metadata.accX.min,
+        maximum: metadata.accX.max,
+        multipleOf: metadata.accX.step,
+        unit: 'metre per second squared',
+        title: 'Acceleration x',
+        readOnly: true
+      });
+  
+      this.properties.set('accX', this.accXProperty);
+  
+      this.accYProperty = new Property(this, 'accY', {
+        type: 'number',
+        '@type': 'LevelProperty',
+        minimum: metadata.accY.min,
+        maximum: metadata.accY.max,
+        multipleOf: metadata.accY.step,
+        unit: 'metre per second squared',
+        title: 'Acceleration y',
+        readOnly: true
+      });
+  
+      this.properties.set('accY', this.accYProperty);
+  
+      this.accZProperty = new Property(this, 'accZ', {
+        type: 'number',
+        '@type': 'LevelProperty',
+        minimum: metadata.accZ.min,
+        maximum: metadata.accZ.max,
+        multipleOf: metadata.accZ.step,
+        unit: 'metre per second squared',
+        title: 'Acceleration z',
+        readOnly: true
+      });
+  
+      this.properties.set('accZ', this.accZProperty);
+    }
 
     if (data.version == 5) {
-      this.txPowerProperty = new Property(this, 'txPower', {
-        type: 'integer',
-        '@type': 'LevelProperty',
-        minimum: metadata.txPower?.min,
-        maximum: metadata.txPower?.max,
-        multipleOf: metadata.txPower?.step,
-        unit: 'dBm',
-        title: 'transmission power',
-        description: 'The transmission power in decibels',
-        readOnly: true
-      });
+      if(txPower) {
+        this.txPowerProperty = new Property(this, 'txPower', {
+          type: 'integer',
+          '@type': 'LevelProperty',
+          minimum: metadata.txPower?.min,
+          maximum: metadata.txPower?.max,
+          multipleOf: metadata.txPower?.step,
+          unit: 'dBm',
+          title: 'transmission power',
+          description: 'The transmission power in decibels',
+          readOnly: true
+        });
+  
+        this.properties.set('txPower', this.txPowerProperty)
+      }
 
-      this.properties.set('txPower', this.txPowerProperty);
+      if(movementCounter) {
+        this.movementCounterProperty = new Property(this, 'movementCounter', {
+          type: 'integer',
+          minimum: metadata.movementCounter?.min,
+          maximum: metadata.movementCounter?.max,
+          multipleOf: metadata.movementCounter?.step,
+          title: 'Movement counter',
+          description: 'The number of detected movements',
+          readOnly: true
+        });
+  
+        this.properties.set('movementCounter', this.movementCounterProperty);
 
-      this.movementCounterProperty = new Property(this, 'movementCounter', {
-        type: 'integer',
-        minimum: metadata.movementCounter?.min,
-        maximum: metadata.movementCounter?.max,
-        multipleOf: metadata.movementCounter?.step,
-        title: 'Movement counter',
-        description: 'The number of detected movements',
-        readOnly: true
-      });
+        this.events.set('movement', {
+          name: 'movement',
+          metadata: {
+            description: 'Movement detected',
+            type: 'string'
+          }
+        });
+      }
 
-      this.properties.set('movementCounter', this.movementCounterProperty);
-
-      this.events.set('movement', {
-        name: 'movement',
-        metadata: {
-          description: 'Movement detected',
-          type: 'string'
-        }
-      });
-
-      this.measurementCounterProperty = new Property(this, 'measurementCounter', {
-        type: 'integer',
-        minimum: metadata.measurementCounter?.min,
-        maximum: metadata.measurementCounter?.max,
-        multipleOf: metadata.measurementCounter?.step,
-        title: 'Measurement counter',
-        description: 'The number of measurements',
-        readOnly: true
-      });
-
-      this.properties.set('measurementCounter', this.measurementCounterProperty);
-
-      this.packetLossProperty = new Property(this, 'packetLoss', {
-        type: 'integer',
-        minimum: metadata.measurementCounter?.min,
-        maximum: metadata.measurementCounter?.max,
-        multipleOf: metadata.measurementCounter?.step,
-        title: 'Packet loss',
-        description: 'The number of lost packets',
-        readOnly: true
-      });
-
-      this.properties.set('packetLoss', this.packetLossProperty);
+      if(measurementCounter) {
+        this.measurementCounterProperty = new Property(this, 'measurementCounter', {
+          type: 'integer',
+          minimum: metadata.measurementCounter?.min,
+          maximum: metadata.measurementCounter?.max,
+          multipleOf: metadata.measurementCounter?.step,
+          title: 'Measurement counter',
+          description: 'The number of measurements',
+          readOnly: true
+        });
+  
+        this.properties.set('measurementCounter', this.measurementCounterProperty);
+  
+        this.packetLossProperty = new Property(this, 'packetLoss', {
+          type: 'integer',
+          minimum: metadata.measurementCounter?.min,
+          maximum: metadata.measurementCounter?.max,
+          multipleOf: metadata.measurementCounter?.step,
+          title: 'Packet loss',
+          description: 'The number of lost packets',
+          readOnly: true
+        });
+  
+        this.properties.set('packetLoss', this.packetLossProperty);
+      }
     }
   }
 
@@ -240,15 +255,15 @@ export class RuuviTag extends Device {
     }
 
     if (accX !== null) {
-      this.accXProperty.setCachedValueAndNotify(accX);
+      this.accXProperty?.setCachedValueAndNotify(accX);
     }
 
     if (accY !== null) {
-      this.accYProperty.setCachedValueAndNotify(accY);
+      this.accYProperty?.setCachedValueAndNotify(accY);
     }
 
     if (accZ !== null) {
-      this.accZProperty.setCachedValueAndNotify(accZ);
+      this.accZProperty?.setCachedValueAndNotify(accZ);
     }
   }
 
@@ -296,7 +311,12 @@ export class RuuviTagAdapter extends Adapter {
     this.knownDevices = {};
     addonManager.addAdapter(this);
 
-    const config = mergeLoadedConfig(getDefaultConfig(), manifest.moziot.config);
+    const config = {
+        temperaturePrecision: 1,
+        humidityPrecision: 0,
+        pressurePrecision: 0,
+        ...manifest.moziot.config
+    }
 
     noble.on('stateChange', (state) => {
       console.log('Noble adapter is %s', state);

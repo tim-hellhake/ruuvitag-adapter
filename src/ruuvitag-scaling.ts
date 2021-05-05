@@ -20,23 +20,27 @@ export function scalePressure(pressure: number, config: any) : number {
 }
 
 export function getMetadata(version: number, config: any) {
+    const temperatureStep = +( 1 / (10 ** config.temperaturePrecision) ).toFixed(3) ;
+    const humidityStep = +( 1 / (10 ** config.humidityPrecision) ).toFixed(4);
+    const pressureStep = +( 1 / (10 ** config.pressurePrecision) ).toFixed(2);
+
     switch (version) {
         case 3:
             return {
                 humidity: {
                     min: 0,
                     max: 100,
-                    step: Math.max(0.5, config.humidityStep),
+                    step: Math.max(0.5, humidityStep),
                 },
                 temperature: {
                     min: -127.99,
                     max: 127.99,
-                    step: Math.max(0.01, config.temperatureStep),
+                    step: Math.max(0.01, temperatureStep),
                 },
                 pressure: {
                     min: hPa(50000),
                     max: hPa(101325),
-                    step: Math.max(hPa(1),config.pressureStep),
+                    step: Math.max(hPa(1),pressureStep),
                 },
                 batteryVoltage: {
                     min: 1.6,
@@ -64,17 +68,17 @@ export function getMetadata(version: number, config: any) {
                 temperature: {
                     min: -163.835,
                     max: 163.835,
-                    step: Math.max(0.005,config.temperatureStep),
+                    step: Math.max(0.005, temperatureStep),
                 },
                 humidity: {
                     min: 0,
                     max: 100,
-                    step: Math.max(0.0025,config.humidityStep),
+                    step: Math.max(0.0025, humidityStep),
                 },
                 pressure: {
                     min: hPa(50000),
                     max: hPa(101325),
-                    step: Math.max(hPa(1),config.pressureStep),
+                    step: Math.max(hPa(1), pressureStep),
                 },
                 txPower: {
                     min: -40,
@@ -115,25 +119,4 @@ export function getMetadata(version: number, config: any) {
     }
 
     throw `Unknown version ${version}`;
-}
-
-export function mergeLoadedConfig(current: any, loaded: any) {
-    current.temperaturePrecision = loaded.temperaturePrecision;
-    current.humidityPrecision = loaded.humidityPrecision;
-    current.pressurePrecision = loaded.pressurePrecision;
-    current.temperatureStep = +( 1 / (10 ** loaded.temperaturePrecision) ).toFixed(3) ;
-    current.humidityStep = +( 1 / (10 ** loaded.humidityPrecision) ).toFixed(4);
-    current.pressureStep = +( 1 / (10 ** loaded.pressurePrecision) ).toFixed(2);
-    return current;
-}
-
-export function getDefaultConfig() {
-    return {
-        temperaturePrecision: 1,
-        humidityPrecision: 0,
-        pressurePrecision: 0,
-        temperatureStep: 0.1,
-        humidityStep: 1,
-        pressureStep: 1,
-    };
 }
