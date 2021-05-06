@@ -5,5 +5,5 @@
  */
 
 declare module '@abandonware/noble' {
-    export * from 'noble'
+  export * from 'noble';
 }

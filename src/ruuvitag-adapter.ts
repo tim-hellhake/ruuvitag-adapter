@@ -4,6 +4,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.*
  */
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use strict';
 
 import { Adapter, Device, Property, Event } from 'gateway-addon';
@@ -14,21 +17,41 @@ import { getMetadata, scaleTemperature, scaleHumidity, scalePressure } from './r
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property;
+
   private humidityProperty: Property;
+
   private pressureProperty: Property;
+
   private batteryProperty: Property;
+
   private accXProperty?: Property;
+
   private accYProperty?: Property;
+
   private accZProperty?: Property;
+
   private txPowerProperty?: Property;
+
   private movementCounterProperty?: Property;
+
   private measurementCounterProperty?: Property;
+
   private packetLossProperty?: Property;
+
   private lastMovementCounter = 0;
+
   private lastMeasurementCounter = 0;
+
   private config: any;
 
-  constructor(adapter: Adapter, manifest: any, id: string, address: string, manufacturerData: Buffer, config: any) {
+  constructor(
+    adapter: Adapter,
+    manifest: any,
+    id: string,
+    address: string,
+    manufacturerData: Buffer,
+    config: any
+  ) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor', 'HumiditySensor', 'BarometricPressureSensor'];
@@ -39,16 +62,11 @@ export class RuuviTag extends Device {
     const data = parse(manufacturerData);
     const metadata = getMetadata(data.version, config);
 
-    if(config.debug) {
+    if (config.debug) {
       console.log(`Received ${JSON.stringify(data)} from ${id}`);
     }
 
-    const {
-      acceleration,
-      txPower,
-      movementCounter,
-      measurementCounter,
-    } = config.features ?? {};
+    const { acceleration, txPower, movementCounter, measurementCounter } = config.features ?? {};
 
     this.temperatureProperty = new Property(this, 'temperature', {
       type: 'number',
@@ -59,7 +77,7 @@ export class RuuviTag extends Device {
       unit: 'degree celsius',
       title: 'temperature',
       description: 'The ambient temperature',
-      readOnly: true
+      readOnly: true,
     });
 
     this.properties.set('temperature', this.temperatureProperty);
@@ -73,7 +91,7 @@ export class RuuviTag extends Device {
       unit: '%',
       title: 'humidity',
       description: 'The relative humidity',
-      readOnly: true
+      readOnly: true,
     });
 
     this.properties.set('humidity', this.humidityProperty);
@@ -87,7 +105,7 @@ export class RuuviTag extends Device {
       unit: 'hPa',
       title: 'Atmospheric pressure',
       description: 'The atmospheric pressure',
-      readOnly: true
+      readOnly: true,
     });
 
     this.properties.set('pressure', this.pressureProperty);
@@ -101,12 +119,12 @@ export class RuuviTag extends Device {
       unit: 'volt',
       title: 'Battery',
       description: 'The battery voltage',
-      readOnly: true
+      readOnly: true,
     });
 
     this.properties.set('battery', this.batteryProperty);
 
-    if(acceleration) {
+    if (acceleration) {
       this.accXProperty = new Property(this, 'accX', {
         type: 'number',
         '@type': 'LevelProperty',
@@ -115,11 +133,11 @@ export class RuuviTag extends Device {
         multipleOf: metadata.accX.step,
         unit: 'metre per second squared',
         title: 'Acceleration x',
-        readOnly: true
+        readOnly: true,
       });
-  
+
       this.properties.set('accX', this.accXProperty);
-  
+
       this.accYProperty = new Property(this, 'accY', {
         type: 'number',
         '@type': 'LevelProperty',
@@ -128,11 +146,11 @@ export class RuuviTag extends Device {
         multipleOf: metadata.accY.step,
         unit: 'metre per second squared',
         title: 'Acceleration y',
-        readOnly: true
+        readOnly: true,
       });
-  
+
       this.properties.set('accY', this.accYProperty);
-  
+
       this.accZProperty = new Property(this, 'accZ', {
         type: 'number',
         '@type': 'LevelProperty',
@@ -141,14 +159,14 @@ export class RuuviTag extends Device {
         multipleOf: metadata.accZ.step,
         unit: 'metre per second squared',
         title: 'Acceleration z',
-        readOnly: true
+        readOnly: true,
       });
-  
+
       this.properties.set('accZ', this.accZProperty);
     }
 
     if (data.version == 5) {
-      if(txPower) {
+      if (txPower) {
         this.txPowerProperty = new Property(this, 'txPower', {
           type: 'integer',
           '@type': 'LevelProperty',
@@ -158,13 +176,13 @@ export class RuuviTag extends Device {
           unit: 'dBm',
           title: 'transmission power',
           description: 'The transmission power in decibels',
-          readOnly: true
+          readOnly: true,
         });
-  
-        this.properties.set('txPower', this.txPowerProperty)
+
+        this.properties.set('txPower', this.txPowerProperty);
       }
 
-      if(movementCounter) {
+      if (movementCounter) {
         this.movementCounterProperty = new Property(this, 'movementCounter', {
           type: 'integer',
           minimum: metadata.movementCounter?.min,
@@ -172,21 +190,21 @@ export class RuuviTag extends Device {
           multipleOf: metadata.movementCounter?.step,
           title: 'Movement counter',
           description: 'The number of detected movements',
-          readOnly: true
+          readOnly: true,
         });
-  
+
         this.properties.set('movementCounter', this.movementCounterProperty);
 
         this.events.set('movement', {
           name: 'movement',
           metadata: {
             description: 'Movement detected',
-            type: 'string'
-          }
+            type: 'string',
+          },
         });
       }
 
-      if(measurementCounter) {
+      if (measurementCounter) {
         this.measurementCounterProperty = new Property(this, 'measurementCounter', {
           type: 'integer',
           minimum: metadata.measurementCounter?.min,
@@ -194,11 +212,11 @@ export class RuuviTag extends Device {
           multipleOf: metadata.measurementCounter?.step,
           title: 'Measurement counter',
           description: 'The number of measurements',
-          readOnly: true
+          readOnly: true,
         });
-  
+
         this.properties.set('measurementCounter', this.measurementCounterProperty);
-  
+
         this.packetLossProperty = new Property(this, 'packetLoss', {
           type: 'integer',
           minimum: metadata.measurementCounter?.min,
@@ -206,15 +224,15 @@ export class RuuviTag extends Device {
           multipleOf: metadata.measurementCounter?.step,
           title: 'Packet loss',
           description: 'The number of lost packets',
-          readOnly: true
+          readOnly: true,
         });
-  
+
         this.properties.set('packetLoss', this.packetLossProperty);
       }
     }
   }
 
-  setData(manufacturerData: Buffer) {
+  setData(manufacturerData: Buffer): void {
     const data = parse(manufacturerData);
 
     switch (data.version) {
@@ -227,16 +245,8 @@ export class RuuviTag extends Device {
     }
   }
 
-  setDataV3(data: DataV3) {
-    const {
-      humidity,
-      temperature,
-      pressure,
-      batteryVoltage,
-      accX,
-      accY,
-      accZ
-    } = data;
+  setDataV3(data: DataV3): void {
+    const { humidity, temperature, pressure, batteryVoltage, accX, accY, accZ } = data;
 
     if (humidity !== null) {
       this.humidityProperty.setCachedValueAndNotify(scaleHumidity(humidity, this.config));
@@ -267,12 +277,8 @@ export class RuuviTag extends Device {
     }
   }
 
-  setDataV5(data: DataV5) {
-    const {
-      txPower,
-      movementCounter,
-      measurementCounter
-    } = data;
+  setDataV5(data: DataV5): void {
+    const { txPower, movementCounter, measurementCounter } = data;
 
     if (this.txPowerProperty && txPower !== null) {
       this.txPowerProperty.setCachedValueAndNotify(txPower);
@@ -291,7 +297,7 @@ export class RuuviTag extends Device {
       this.measurementCounterProperty.setCachedValueAndNotify(measurementCounter);
 
       if (this.lastMeasurementCounter != measurementCounter) {
-        if(typeof this.lastMeasurementCounter === 'number') {
+        if (typeof this.lastMeasurementCounter === 'number') {
           const diff = Math.abs(this.lastMeasurementCounter - measurementCounter);
           this.packetLossProperty?.setCachedValueAndNotify(diff);
         }
@@ -312,11 +318,11 @@ export class RuuviTagAdapter extends Adapter {
     addonManager.addAdapter(this);
 
     const config = {
-        temperaturePrecision: 1,
-        humidityPrecision: 0,
-        pressurePrecision: 0,
-        ...manifest.moziot.config
-    }
+      temperaturePrecision: 1,
+      humidityPrecision: 0,
+      pressurePrecision: 0,
+      ...manifest.moziot.config,
+    };
 
     noble.on('stateChange', (state) => {
       console.log('Noble adapter is %s', state);
@@ -331,10 +337,7 @@ export class RuuviTagAdapter extends Adapter {
       const manufacturerData = peripheral.advertisement.manufacturerData;
 
       if (manufacturerData && manufacturerData.readUInt16LE(0) === 0x0499) {
-        const {
-          id,
-          address
-        } = peripheral;
+        const { id, address } = peripheral;
 
         let knownDevice = this.knownDevices[id];
 
