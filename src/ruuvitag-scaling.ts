@@ -5,17 +5,18 @@
  */
 
 'use strict';
+import { Config } from './config';
 import { hPa } from './ruuvitag-parser';
 
-export function scaleTemperature(temperature: number, config: Record<string, number>): number {
+export function scaleTemperature(temperature: number, config: Config): number {
   return +temperature.toFixed(config.temperaturePrecision);
 }
 
-export function scaleHumidity(humidity: number, config: Record<string, number>): number {
+export function scaleHumidity(humidity: number, config: Config): number {
   return +humidity.toFixed(config.humidityPrecision);
 }
 
-export function scalePressure(pressure: number, config: Record<string, number>): number {
+export function scalePressure(pressure: number, config: Config): number {
   return +pressure.toFixed(config.pressurePrecision);
 }
 
@@ -38,7 +39,7 @@ interface RangeData {
   step: number;
 }
 
-export function getMetadata(version: number, config: Record<string, number>): Metadata {
+export function getMetadata(version: number, config: Config): Metadata {
   const temperatureStep = +(1 / 10 ** config.temperaturePrecision).toFixed(3);
   const humidityStep = +(1 / 10 ** config.humidityPrecision).toFixed(4);
   const pressureStep = +(1 / 10 ** config.pressurePrecision).toFixed(2);

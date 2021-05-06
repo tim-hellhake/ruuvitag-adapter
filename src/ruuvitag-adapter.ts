@@ -4,16 +4,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.*
  */
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use strict';
 
-import { Adapter, Device, Property, Event } from 'gateway-addon';
+import { Adapter, Device, Property, Event, AddonManagerProxy } from 'gateway-addon';
 
 import noble from '@abandonware/noble';
 import { parse, DataV3, DataV5 } from './ruuvitag-parser';
 import { getMetadata, scaleTemperature, scaleHumidity, scalePressure } from './ruuvitag-scaling';
+import { Config } from './config';
 
 export class RuuviTag extends Device {
   private temperatureProperty: Property<number>;
@@ -42,21 +40,21 @@ export class RuuviTag extends Device {
 
   private lastMeasurementCounter = 0;
 
-  private config: any;
+  private config: Config;
 
   constructor(
     adapter: Adapter,
-    manifest: any,
+    manifest: Record<string, unknown>,
     id: string,
     address: string,
     manufacturerData: Buffer,
-    config: any
+    config: Config
   ) {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor', 'HumiditySensor', 'BarometricPressureSensor'];
     this.setTitle(`RuuviTag (${address || id})`);
-    this.setDescription(manifest.description);
+    this.setDescription(manifest.description as string);
     this.config = config;
 
     const data = parse(manufacturerData);
@@ -312,7 +310,7 @@ export class RuuviTag extends Device {
 export class RuuviTagAdapter extends Adapter {
   private knownDevices: { [key: string]: RuuviTag } = {};
 
-  constructor(addonManager: any, manifest: Record<string, unknown>) {
+  constructor(addonManager: AddonManagerProxy, manifest: Record<string, unknown>) {
     super(addonManager, RuuviTagAdapter.name, manifest.name as string);
     this.knownDevices = {};
     addonManager.addAdapter(this);
@@ -321,7 +319,7 @@ export class RuuviTagAdapter extends Adapter {
       temperaturePrecision: 1,
       humidityPrecision: 0,
       pressurePrecision: 0,
-      ...(manifest.moziot as { config: Record<string, number> }).config,
+      ...(manifest.moziot as { config?: Config }).config,
     };
 
     noble.on('stateChange', (state) => {
