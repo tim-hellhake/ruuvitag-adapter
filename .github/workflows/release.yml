@@ -81,9 +81,9 @@ jobs:
     - name: Install
       run: |
         npm ci
-      - name: Check formatting
-        run: |
-          npx prettier -c 'src/*.ts'
+    - name: Check formatting
+      run: |
+        npx prettier -c 'src/*.ts'
     - name: Lint
       run: |
         npm run lint
