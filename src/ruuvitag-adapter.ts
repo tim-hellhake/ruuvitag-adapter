@@ -16,27 +16,27 @@ import { parse, DataV3, DataV5 } from './ruuvitag-parser';
 import { getMetadata, scaleTemperature, scaleHumidity, scalePressure } from './ruuvitag-scaling';
 
 export class RuuviTag extends Device {
-  private temperatureProperty: Property;
+  private temperatureProperty: Property<number>;
 
-  private humidityProperty: Property;
+  private humidityProperty: Property<number>;
 
-  private pressureProperty: Property;
+  private pressureProperty: Property<number>;
 
-  private batteryProperty: Property;
+  private batteryProperty: Property<number>;
 
-  private accXProperty?: Property;
+  private accXProperty?: Property<number>;
 
-  private accYProperty?: Property;
+  private accYProperty?: Property<number>;
 
-  private accZProperty?: Property;
+  private accZProperty?: Property<number>;
 
-  private txPowerProperty?: Property;
+  private txPowerProperty?: Property<number>;
 
-  private movementCounterProperty?: Property;
+  private movementCounterProperty?: Property<number>;
 
-  private measurementCounterProperty?: Property;
+  private measurementCounterProperty?: Property<number>;
 
-  private packetLossProperty?: Property;
+  private packetLossProperty?: Property<number>;
 
   private lastMovementCounter = 0;
 
@@ -55,8 +55,8 @@ export class RuuviTag extends Device {
     super(adapter, `${RuuviTag.name}-${id}`);
     this['@context'] = 'https://iot.mozilla.org/schemas/';
     this['@type'] = ['TemperatureSensor', 'HumiditySensor', 'BarometricPressureSensor'];
-    this.name = `RuuviTag (${address || id})`;
-    this.description = manifest.description;
+    this.setTitle(`RuuviTag (${address || id})`);
+    this.setDescription(manifest.description);
     this.config = config;
 
     const data = parse(manufacturerData);
@@ -80,7 +80,7 @@ export class RuuviTag extends Device {
       readOnly: true,
     });
 
-    this.properties.set('temperature', this.temperatureProperty);
+    this.addProperty(this.temperatureProperty);
 
     this.humidityProperty = new Property(this, 'humidity', {
       type: 'number',
@@ -94,7 +94,7 @@ export class RuuviTag extends Device {
       readOnly: true,
     });
 
-    this.properties.set('humidity', this.humidityProperty);
+    this.addProperty(this.humidityProperty);
 
     this.pressureProperty = new Property(this, 'pressure', {
       type: 'number',
@@ -108,7 +108,7 @@ export class RuuviTag extends Device {
       readOnly: true,
     });
 
-    this.properties.set('pressure', this.pressureProperty);
+    this.addProperty(this.pressureProperty);
 
     this.batteryProperty = new Property(this, 'battery', {
       type: 'number',
@@ -122,7 +122,7 @@ export class RuuviTag extends Device {
       readOnly: true,
     });
 
-    this.properties.set('battery', this.batteryProperty);
+    this.addProperty(this.batteryProperty);
 
     if (acceleration) {
       this.accXProperty = new Property(this, 'accX', {
@@ -136,7 +136,7 @@ export class RuuviTag extends Device {
         readOnly: true,
       });
 
-      this.properties.set('accX', this.accXProperty);
+      this.addProperty(this.accXProperty);
 
       this.accYProperty = new Property(this, 'accY', {
         type: 'number',
@@ -149,7 +149,7 @@ export class RuuviTag extends Device {
         readOnly: true,
       });
 
-      this.properties.set('accY', this.accYProperty);
+      this.addProperty(this.accYProperty);
 
       this.accZProperty = new Property(this, 'accZ', {
         type: 'number',
@@ -162,7 +162,7 @@ export class RuuviTag extends Device {
         readOnly: true,
       });
 
-      this.properties.set('accZ', this.accZProperty);
+      this.addProperty(this.accZProperty);
     }
 
     if (data.version == 5) {
@@ -179,7 +179,7 @@ export class RuuviTag extends Device {
           readOnly: true,
         });
 
-        this.properties.set('txPower', this.txPowerProperty);
+        this.addProperty(this.txPowerProperty);
       }
 
       if (movementCounter) {
@@ -193,9 +193,9 @@ export class RuuviTag extends Device {
           readOnly: true,
         });
 
-        this.properties.set('movementCounter', this.movementCounterProperty);
+        this.addProperty(this.movementCounterProperty);
 
-        this.events.set('movement', {
+        this.addEvent('movement', {
           name: 'movement',
           metadata: {
             description: 'Movement detected',
@@ -215,7 +215,7 @@ export class RuuviTag extends Device {
           readOnly: true,
         });
 
-        this.properties.set('measurementCounter', this.measurementCounterProperty);
+        this.addProperty(this.measurementCounterProperty);
 
         this.packetLossProperty = new Property(this, 'packetLoss', {
           type: 'integer',
@@ -227,7 +227,7 @@ export class RuuviTag extends Device {
           readOnly: true,
         });
 
-        this.properties.set('packetLoss', this.packetLossProperty);
+        this.addProperty(this.packetLossProperty);
       }
     }
   }
@@ -312,8 +312,8 @@ export class RuuviTag extends Device {
 export class RuuviTagAdapter extends Adapter {
   private knownDevices: { [key: string]: RuuviTag } = {};
 
-  constructor(addonManager: any, manifest: any) {
-    super(addonManager, RuuviTagAdapter.name, manifest.name);
+  constructor(addonManager: any, manifest: Record<string, unknown>) {
+    super(addonManager, RuuviTagAdapter.name, manifest.name as string);
     this.knownDevices = {};
     addonManager.addAdapter(this);
 
@@ -321,7 +321,7 @@ export class RuuviTagAdapter extends Adapter {
       temperaturePrecision: 1,
       humidityPrecision: 0,
       pressurePrecision: 0,
-      ...manifest.moziot.config,
+      ...(manifest.moziot as { config: Record<string, number> }).config,
     };
 
     noble.on('stateChange', (state) => {

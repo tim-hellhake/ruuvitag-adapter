@@ -4,11 +4,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.*
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 'use strict';
 
+import { AddonManagerProxy } from 'gateway-addon';
 import { RuuviTagAdapter } from './ruuvitag-adapter';
 
-export = (addonManager: any, manifest: any) => new RuuviTagAdapter(addonManager, manifest);
+export = function (addonManager: AddonManagerProxy, manifest: Record<string, unknown>): void {
+  new RuuviTagAdapter(addonManager, manifest);
+};
